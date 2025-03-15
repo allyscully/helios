@@ -1,5 +1,5 @@
-pandoc: 3.1.11
-pkgdown: 2.0.9
+pandoc: '3.2'
+pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   blueprint-final-report: blueprint-final-report.html
@@ -7,8 +7,7 @@ articles:
   blueprint: blueprint.html
   helios: helios.html
   model: model.html
-last_built: 2024-08-01T15:59Z
+last_built: 2025-03-15T15:33Z
 urls:
   reference: https://mrc-ide.github.io/helios/reference
   article: https://mrc-ide.github.io/helios/articles
-

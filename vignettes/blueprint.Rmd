@@ -43,8 +43,9 @@ library(dplyr, warn.conflicts = FALSE)
 library(purrr)
 theme_set(theme_minimal())
 blueprint_colours <- colorRampPalette(c("#00AFFF", "#03113E"))(4)
-exemplar_data <- readRDS("./exemplar_simulations.rds")
-parameter_sweep_data <- readRDS("./parameter_sweep_data.rds")
+getwd()
+exemplar_data <- readRDS("./Blueprint_Report2_July24_files/exemplar_simulations.rds")
+parameter_sweep_data <- readRDS("./Blueprint_Report2_July24_files/parameter_sweep_data.rds")
 ```
 
 # Overview
@@ -63,10 +64,10 @@ We note here that the results presented are purely **examples** of the types of 
 # Model description
 
 ```{r}
-human_population <- 50000L
+human_population <- 200000L
 parameters_list <- get_parameters(list(human_population = human_population, 
-                                       number_initial_S = 45000,
-                                       number_initial_E = 5000,
+                                       number_initial_S = 180000,
+                                       number_initial_E = 20000,
                                        number_initial_I = 0,
                                        number_initial_R = 0,
                                        household_distribution_country = "UK",

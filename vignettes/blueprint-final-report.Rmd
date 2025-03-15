@@ -615,7 +615,8 @@ df_comparison <- endemic_summary_outputs %>%
   summarise(incidence_percentage_reduction_mean = mean(reduction_incidence),
             incidence_percentage_reduction_lower = min(reduction_incidence),
             incidence_percentage_reduction_upper = max(reduction_incidence),
-            hypothetical_reduction = mean(hypothetical_reduction))
+            hypothetical_reduction = mean(hypothetical_reduction)) %>%
+    mutate(Reff = ifelse(archetype == "flu", 1.5 * (1 - hypothetical_reduction), 2.5 *(1 - hypothetical_reduction)))
   
 ggplot(data = df_comparison, aes(x = 100 * hypothetical_reduction, 
                                  y = 100 * incidence_percentage_reduction_mean, 
@@ -638,6 +639,33 @@ ggplot(data = df_comparison, aes(x = 100 * hypothetical_reduction,
 ```
 
 (ref:comparison-1) Comparing the estimates of impact for `helios` and a simplified multiplicative model. x-axis indicates the reduction estimated by the simple model; y-axis the estimate produced by `helios` . Points are coloured according to pathogen archetype. Dashed line indicates the line of `y = x` (i.e. any points lying on that line have the same impact estimate from `helios` and the simplified model). Grey shaded area indicates range where the simple model predicts lower impact than `helios`.
+
+Below in Figure \@ref(fig:comparison-2) we plot the epidemiological value of an averted infection (defined here as the `helios` modelled reduction in annual incidence divided by the reduction in incidence predicted by that simple multiplicative model) against the percentage of transmission predicted to remain in the simple multiplicative model (i.e. 100% - the predicted % decrease in transmission from the simple model). We do so to explore and estimate the overall epidemiological value of far UVC averting a single transmission event. This therefore takes into account two opposing forces - firstly, that the individuals far UVC protects during a potential transmission event go on to be infected by other sources (which will decrease the total number of averted infections to be less than 1), and the number of individuals that otherwise averted infection would have  gone on to infect (which will increase the total number of averted infections to be greater than 1). 
+
+
+``` {r comparison-2, fig.cap = "(ref:comparison-2)"}
+
+a <- ggplot(data = filter(df_comparison, coverage_type == "random"), 
+            aes(x = 100 *(1- hypothetical_reduction), 
+                y = 100 * incidence_percentage_reduction_mean / (100 * hypothetical_reduction), 
+                col = 100 * hypothetical_reduction)) +
+  geom_point(size = 3) +
+  geom_errorbar(aes(ymin = 100 * incidence_percentage_reduction_lower / (100 * hypothetical_reduction),
+                    ymax = 100 * incidence_percentage_reduction_upper / (100 * hypothetical_reduction),
+                    col = 100 * hypothetical_reduction), linewidth = 1) +
+  facet_grid(. ~ archetype, scales = "free_y",
+             labeller = as_labeller(c(`flu` = "Influenza",
+                                      `sars_cov_2` = "SARS-CoV-2"))) +
+  coord_cartesian(xlim = c(60, 100)) +
+  labs(x = "% of Transmission Remaining Predicted By Simple Model\n(100% - % Reduction Predicted by Simple Model)",
+       y = "Epidemiological Value\nof Averted Infection",
+       col = "% Reduction\nin incidence\npredicted by\nsimple model") +
+  theme_bw()
+
+a
+
+```
+(ref:comparison-2) Estimating the epidemiological value of an averted infection in each of the scenarios considered. Each dot is a model run (i.e. a particular scenario combination of coverage, UVC efficacy etc). The x-axis indicates the percentage of transmission predicted to remain in the simple multiplicative model after applying the impacts of UVC coverage and efficacy (i.e. 100% - the predicted % decrease in transmission from far UVC in the simple model). The y-axis indicates the epidemiological value of an averted infection, i.e. the total number of infections that are averted as a result of far UVC directly averting one transmission event. Results plotted are for the random coverage scenario only.
 
 # Discussion
 
