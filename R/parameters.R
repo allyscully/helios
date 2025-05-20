@@ -351,16 +351,12 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   }
 
   # Checking distribution country is either UK, USA or custom
-  if (
-    !(parameters$household_distribution_country %in% c("UK", "USA", "custom"))
-  ) {
+  if (!(parameters$household_distribution_country %in% c("UK", "USA", "custom"))) {
     stop(
       "household_distribution_country must be set to either UK, USA or custom"
     )
   }
-  if (
-    !(parameters$workplace_distribution_country %in% c("UK", "USA", "custom"))
-  ) {
+  if (!(parameters$workplace_distribution_country %in% c("UK", "USA", "custom"))) {
     stop(
       "workplace_distribution_country must be set to either UK, USA or custom"
     )
