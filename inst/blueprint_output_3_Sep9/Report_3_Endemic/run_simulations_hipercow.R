@@ -1,5 +1,4 @@
 run_simulation_hipercow <- function(parameters) {
-
   # Load in the malariasimulation package:
   library(helios)
 
@@ -15,7 +14,6 @@ run_simulation_hipercow <- function(parameters) {
   s$efficacy <- parameters$far_uvc_joint_efficacy
   s$disease_status <- parameters$endemic_or_epidemic
 
-
   # Create an output list:
   output <- list()
 
@@ -25,10 +23,7 @@ run_simulation_hipercow <- function(parameters) {
 
   # Return the outputs
   return(output)
-
 }
-
-
 
 # parameter_lists[[1]]$ID
 # parameter_lists[[1]]$iteration

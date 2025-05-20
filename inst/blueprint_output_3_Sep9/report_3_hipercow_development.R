@@ -41,10 +41,12 @@ hipercow::hipercow_configuration()
 #----- 2) Run helios in parallel on Desktop --------------------------------------------------------
 
 # Read in the parameter lists:
-parameter_lists <- readRDS("./Report_3_Endemic/endemic_simulations_parameter_lists.rds")
+parameter_lists <- readRDS(
+  "./Report_3_Endemic/endemic_simulations_parameter_lists.rds"
+)
 
 # Reduce the number of simulation time steps:
-for(i in 1:length(parameter_lists)) {
+for (i in 1:length(parameter_lists)) {
   parameter_lists[[i]]$simulation_time <- 10
 }
 
@@ -70,12 +72,18 @@ parallel::clusterCall(cluster, function() {
 })
 
 # Run the simulations in parallel:
-test <- parallel::parLapply(cl = cluster, X = parameter_lists, fun = helios::run_simulation)
+test <- parallel::parLapply(
+  cl = cluster,
+  X = parameter_lists,
+  fun = helios::run_simulation
+)
 
 #----- 3) Run simple helios jobs on hipercow -------------------------------------------------------
 
 # Create the environment for hipercow
-hipercow_environment_create(packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats"))
+hipercow_environment_create(
+  packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats")
+)
 
 tictoc::tic()
 parameters <- helios::get_parameters()
@@ -85,17 +93,15 @@ tictoc::toc()
 
 # Create the task (2 simulations of the basic run_simulation() function:
 id5 <- hipercow::task_create_explicit(
-
   # Everything in the expr will be run on the cluster:
   expr = quote({
     parameters <- helios::get_parameters()
     test <- list()
-    for(i in 1:2) {
+    for (i in 1:2) {
       test[[i]] <- helios::run_simulation(parameters_list = parameters)
       test[[i]]$ID <- i
     }
     saveRDS(test, "test.rds")
-
   }),
 
   # Specify the cluster resources etc.
@@ -114,22 +120,26 @@ test[[2]]
 #----- 4) Run parallelised helios jobs on hipercow -------------------------------------------------
 
 # Create the environment for hipercow
-hipercow_environment_create(packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats"))
+hipercow_environment_create(
+  packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats")
+)
 
-parameters <- readRDS("./Report_3_Endemic/endemic_simulations_parameter_lists.rds")
-for(i in 1:length(parameters)) {
+parameters <- readRDS(
+  "./Report_3_Endemic/endemic_simulations_parameter_lists.rds"
+)
+for (i in 1:length(parameters)) {
   parameters[[i]]$simulation_time <- 20
 }
 length(parameters)
 
 # Create the task (2 simulations of the basic run_simulation() function:
 id5 <- hipercow::task_create_explicit(
-
   # Everything in the expr will be run on the cluster:
   expr = quote({
-
-    parameters <- readRDS("./Report_3_Endemic/endemic_simulations_parameter_lists.rds")
-    for(i in 1:length(parameters)) {
+    parameters <- readRDS(
+      "./Report_3_Endemic/endemic_simulations_parameter_lists.rds"
+    )
+    for (i in 1:length(parameters)) {
       parameters[[i]]$simulation_time <- 10
     }
 
@@ -139,8 +149,10 @@ id5 <- hipercow::task_create_explicit(
       fun = run_simulation
     )
 
-    saveRDS(object = scenario_output, file = "./Report_3_Endemic/scenario_output.rds")
-
+    saveRDS(
+      object = scenario_output,
+      file = "./Report_3_Endemic/scenario_output.rds"
+    )
   }),
 
   # Specify the cluster resources etc.
@@ -159,23 +171,27 @@ test[[40]]
 #----- 5) Run parallelised helios jobs vis hipercow script -----------------------------------------
 
 # Create the environment for hipercow
-hipercow_environment_create(packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats"))
+hipercow_environment_create(
+  packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats")
+)
 
-parameters <- readRDS("./Report_3_Endemic/endemic_simulations_parameter_lists.rds")
-for(i in 1:length(parameters)) {
+parameters <- readRDS(
+  "./Report_3_Endemic/endemic_simulations_parameter_lists.rds"
+)
+for (i in 1:length(parameters)) {
   parameters[[i]]$simulation_time <- 10
 }
 length(parameters)
 
 # Create the task (2 simulations of the basic run_simulation() function:
 id5 <- hipercow::task_create_explicit(
-
   # Everything in the expr will be run on the cluster:
   expr = quote({
-
     # Load in the parameter lists:
-    parameters <- readRDS("./Report_3_Endemic/endemic_simulations_parameter_lists.rds")
-    for(i in 1:length(parameters)) {
+    parameters <- readRDS(
+      "./Report_3_Endemic/endemic_simulations_parameter_lists.rds"
+    )
+    for (i in 1:length(parameters)) {
       parameters[[i]]$simulation_time <- 10
     }
 
@@ -189,8 +205,10 @@ id5 <- hipercow::task_create_explicit(
       fun = run_simulation_hipercow
     )
 
-    saveRDS(object = scenario_output, file = "./Report_3_Endemic/scenario_output.rds")
-
+    saveRDS(
+      object = scenario_output,
+      file = "./Report_3_Endemic/scenario_output.rds"
+    )
   }),
 
   # Specify the cluster resources etc.
@@ -211,23 +229,18 @@ test[[40]][[1]]
 test[[40]][[2]]
 
 test2 <- list()
-for(i in 1:length(test)) {
+for (i in 1:length(test)) {
   test2[[i]] <- test[[i]][[2]]
 }
 
 test3 <- bind_rows(test2)
 test3 |>
-  pivot_longer(cols = c(S_count, E_count, I_count, R_count), names_to = "State", values_to = "Individuals") |>
-  ggplot(aes(x = timestep, y = Individuals, colour = as.factor(ID))) + geom_line() +
+  pivot_longer(
+    cols = c(S_count, E_count, I_count, R_count),
+    names_to = "State",
+    values_to = "Individuals"
+  ) |>
+  ggplot(aes(x = timestep, y = Individuals, colour = as.factor(ID))) +
+  geom_line() +
   theme_bw() +
-  facet_grid(archetype~State)
-
-
-
-
-
-
-
-
-
-
+  facet_grid(archetype ~ State)

@@ -5,11 +5,15 @@
 #' @family variables
 #' @export
 create_variables <- function(parameters_list) {
-
   # Disease state variable
   disease_states <- c("S", "E", "I", "R")
-  initial_disease_states <- generate_initial_disease_states(parameters_list = parameters_list)
-  disease_state_variable <- individual::CategoricalVariable$new(categories = disease_states, initial_values = initial_disease_states)
+  initial_disease_states <- generate_initial_disease_states(
+    parameters_list = parameters_list
+  )
+  disease_state_variable <- individual::CategoricalVariable$new(
+    categories = disease_states,
+    initial_values = initial_disease_states
+  )
 
   # Initialise and populate the age and household variables
 
@@ -17,60 +21,107 @@ create_variables <- function(parameters_list) {
   if (parameters_list$household_distribution_country %in% c("UK", "USA")) {
     # Bootstrap sampling of households from either ONS 2011 Census reference panel of household sizes and age composition
     # or RTI synthetic population of household sizes and age composition for San Francisco
-    household_age_list <- generate_initial_households_bootstrap(parameters_list = parameters_list)
+    household_age_list <- generate_initial_households_bootstrap(
+      parameters_list = parameters_list
+    )
 
     # Age class variable
     age_classes <- c("child", "adult", "elderly")
-    age_class_variable <- individual::CategoricalVariable$new(categories = age_classes, initial_values = household_age_list$age_class_vector)
+    age_class_variable <- individual::CategoricalVariable$new(
+      categories = age_classes,
+      initial_values = household_age_list$age_class_vector
+    )
 
     # Household variable
-    household_variable <- individual::CategoricalVariable$new(categories = sprintf("%d", 1:max(household_age_list$individual_households)),
-                                                              initial_values = sprintf("%d", household_age_list$individual_households))
+    household_variable <- individual::CategoricalVariable$new(
+      categories = sprintf(
+        "%d",
+        1:max(household_age_list$individual_households)
+      ),
+      initial_values = sprintf("%d", household_age_list$individual_households)
+    )
 
-  # If user wants to specify age-class proportions and associated households manually
+    # If user wants to specify age-class proportions and associated households manually
   } else {
     # Specify age-class proportions manually
 
     # Age class variable:
     age_classes <- c("child", "adult", "elderly")
-    initial_age_classes <- generate_initial_age_classes(parameters_list = parameters_list)
-    age_class_variable <- individual::CategoricalVariable$new(categories = age_classes, initial_values = initial_age_classes)
+    initial_age_classes <- generate_initial_age_classes(
+      parameters_list = parameters_list
+    )
+    age_class_variable <- individual::CategoricalVariable$new(
+      categories = age_classes,
+      initial_values = initial_age_classes
+    )
 
     # Household variable
-    initial_households <- generate_initial_households(parameters_list = parameters_list, age_class_variable = age_class_variable)
-    household_variable <- individual::CategoricalVariable$new(categories = sprintf("%d", 1:max(initial_households)),
-                                                              initial_values = sprintf("%d", initial_households))
+    initial_households <- generate_initial_households(
+      parameters_list = parameters_list,
+      age_class_variable = age_class_variable
+    )
+    household_variable <- individual::CategoricalVariable$new(
+      categories = sprintf("%d", 1:max(initial_households)),
+      initial_values = sprintf("%d", initial_households)
+    )
   }
 
   # School setting variable
   if (parameters_list$household_distribution_country %in% c("UK", "USA")) {
-    initial_school_settings <- generate_initial_schools_bootstrap(parameters_list = parameters_list, age_class_variable = age_class_variable)
+    initial_school_settings <- generate_initial_schools_bootstrap(
+      parameters_list = parameters_list,
+      age_class_variable = age_class_variable
+    )
   } else {
-    initial_school_settings <- generate_initial_schools(parameters_list = parameters_list, age_class_variable = age_class_variable)
+    initial_school_settings <- generate_initial_schools(
+      parameters_list = parameters_list,
+      age_class_variable = age_class_variable
+    )
   }
   num_schools <- max(as.numeric(initial_school_settings))
-  if(num_schools <= 2) {
-    message("There are less than or equal to 2 schools. Consider the population size may be too small!")
+  if (num_schools <= 2) {
+    message(
+      "There are less than or equal to 2 schools. Consider the population size may be too small!"
+    )
   }
-  school_variable <- individual::CategoricalVariable$new(categories = as.character(0:num_schools), initial_values = initial_school_settings)
+  school_variable <- individual::CategoricalVariable$new(
+    categories = as.character(0:num_schools),
+    initial_values = initial_school_settings
+  )
 
   # Workplace setting variable
-  initial_workplace_settings <- generate_initial_workplaces(parameters_list = parameters_list, age_class_variable = age_class_variable, school_variable = school_variable)
+  initial_workplace_settings <- generate_initial_workplaces(
+    parameters_list = parameters_list,
+    age_class_variable = age_class_variable,
+    school_variable = school_variable
+  )
   num_workplaces <- max(as.numeric(initial_workplace_settings))
-  if(num_workplaces <= 2) {
-    message("There are less than or equal to 2 workplaces. Consider the population size may be too small!")
+  if (num_workplaces <= 2) {
+    message(
+      "There are less than or equal to 2 workplaces. Consider the population size may be too small!"
+    )
   }
-  workplace_variable <- individual::CategoricalVariable$new(categories = as.character(0:num_workplaces), initial_values = initial_workplace_settings)
+  workplace_variable <- individual::CategoricalVariable$new(
+    categories = as.character(0:num_workplaces),
+    initial_values = initial_workplace_settings
+  )
 
   # Generating the number and sizes of each leisure setting
-  leisure_setting_sizes <- sample_negbinom(N = parameters_list$human_population,
-                                           prop_max = parameters_list$leisure_prop_max,
-                                           mu = parameters_list$leisure_mean_size,
-                                           size = parameters_list$leisure_overdispersion_size)
+  leisure_setting_sizes <- sample_negbinom(
+    N = parameters_list$human_population,
+    prop_max = parameters_list$leisure_prop_max,
+    mu = parameters_list$leisure_mean_size,
+    size = parameters_list$leisure_overdispersion_size
+  )
 
   # Initialise and populate the leisure setting variable that stores all the leisure locations an individual COULD go to
-  initial_leisure_settings <- generate_initial_leisure(parameters_list = parameters_list, leisure_setting_sizes = leisure_setting_sizes) # returns list to initialise RaggedInteger
-  leisure_variable <- individual::RaggedInteger$new(initial_values = initial_leisure_settings)
+  initial_leisure_settings <- generate_initial_leisure(
+    parameters_list = parameters_list,
+    leisure_setting_sizes = leisure_setting_sizes
+  ) # returns list to initialise RaggedInteger
+  leisure_variable <- individual::RaggedInteger$new(
+    initial_values = initial_leisure_settings
+  )
 
   # Due to the sampling method used, the leisure settings for which sizes have been drawn (leisure_setting_sizes)
   # are not always assigned individuals (leisure_variable). To avoid indexing errors, we need to determine
@@ -83,11 +134,16 @@ create_variables <- function(parameters_list) {
   assigned_leisure_locations <- sort(unique(unlist(initial_leisure_settings)))
 
   # Determine which, if any, of the potential leisure locations no individuals have been assigned to visit:
-  unassigned_leisure_locations <- setdiff(hypothetical_leisure_locations, assigned_leisure_locations)
+  unassigned_leisure_locations <- setdiff(
+    hypothetical_leisure_locations,
+    assigned_leisure_locations
+  )
 
   # If there are unvisited leisure locations, remove them from the leisure_setting_sizes object:
   if (!identical(integer(0), unassigned_leisure_locations)) {
-    leisure_setting_sizes <- leisure_setting_sizes[-unassigned_leisure_locations]
+    leisure_setting_sizes <- leisure_setting_sizes[
+      -unassigned_leisure_locations
+    ]
   }
 
   # Add the assigned leisure locations as a parameter:
@@ -100,8 +156,12 @@ create_variables <- function(parameters_list) {
   # are missing the values from leisure_setting_not_assigned_to_anyone.
 
   ## Creating initial CategoricalVariable tracking leisure location an individiual goes to on a given day, which we will dynamically update
-  specific_day_leisure_variable <- individual::CategoricalVariable$new(categories = as.character(assigned_leisure_locations[order(assigned_leisure_locations)]),
-                                                                       initial_values = rep(as.character(0), parameters_list$human_population))
+  specific_day_leisure_variable <- individual::CategoricalVariable$new(
+    categories = as.character(assigned_leisure_locations[order(
+      assigned_leisure_locations
+    )]),
+    initial_values = rep(as.character(0), parameters_list$human_population)
+  )
 
   # Return the list of model variables
   variables_list <- list(
@@ -127,44 +187,68 @@ create_variables <- function(parameters_list) {
 
   # Creating vector of setting-specific riskinesses for each setting type
   num_households <- max(as.numeric(variables_list$household$get_categories()))
-  parameters_list$household_specific_riskiness <- generate_setting_specific_riskinesses(parameters_list = parameters_list,
-                                                                                        setting = "household",
-                                                                                        number_of_locations = num_households)
+  parameters_list$household_specific_riskiness <- generate_setting_specific_riskinesses(
+    parameters_list = parameters_list,
+    setting = "household",
+    number_of_locations = num_households
+  )
   num_workplaces <- max(as.numeric(variables_list$workplace$get_categories()))
-  parameters_list$workplace_specific_riskiness <- generate_setting_specific_riskinesses(parameters_list = parameters_list,
-                                                                                        setting = "workplace",
-                                                                                        number_of_locations = num_workplaces)
+  parameters_list$workplace_specific_riskiness <- generate_setting_specific_riskinesses(
+    parameters_list = parameters_list,
+    setting = "workplace",
+    number_of_locations = num_workplaces
+  )
   num_schools <- max(as.numeric(variables_list$school$get_categories()))
-  parameters_list$school_specific_riskiness <- generate_setting_specific_riskinesses(parameters_list = parameters_list,
-                                                                                     setting = "school",
-                                                                                     number_of_locations = num_schools)
+  parameters_list$school_specific_riskiness <- generate_setting_specific_riskinesses(
+    parameters_list = parameters_list,
+    setting = "school",
+    number_of_locations = num_schools
+  )
   num_leisure <- length(parameters_list$setting_sizes$leisure)
-  parameters_list$leisure_specific_riskiness <- generate_setting_specific_riskinesses(parameters_list = parameters_list,
-                                                                                      setting = "leisure",
-                                                                                      number_of_locations = num_leisure)
+  parameters_list$leisure_specific_riskiness <- generate_setting_specific_riskinesses(
+    parameters_list = parameters_list,
+    setting = "leisure",
+    number_of_locations = num_leisure
+  )
 
   # If any setting has UVC installed, retrieve the sizes of all of the settings:
-  if(any(parameters_list$far_uvc_joint,
-         parameters_list$far_uvc_workplace,
-         parameters_list$far_uvc_school,
-         parameters_list$far_uvc_leisure,
-         parameters_list$far_uvc_household)) {
-
+  if (
+    any(
+      parameters_list$far_uvc_joint,
+      parameters_list$far_uvc_workplace,
+      parameters_list$far_uvc_school,
+      parameters_list$far_uvc_leisure,
+      parameters_list$far_uvc_household
+    )
+  ) {
     # Generate and append the far UVC switches for settings in which it has been switched on:
-    parameters_list <- generate_far_uvc_switches(parameters_list, variables_list)
+    parameters_list <- generate_far_uvc_switches(
+      parameters_list,
+      variables_list
+    )
 
     # If joint has been specified, updating setting-type specific far UVC parameters used during model running
     setting_types <- c("workplace", "school", "leisure") # , "household")
     if (parameters_list$far_uvc_joint) {
       parameters_list[paste0("far_uvc_", setting_types)] <- TRUE
-      parameters_list[paste0("far_uvc_", setting_types, "_efficacy")] <- parameters_list$far_uvc_joint_efficacy
-      parameters_list[paste0("far_uvc_", setting_types, "_timestep")] <- parameters_list$far_uvc_joint_timestep
+      parameters_list[paste0(
+        "far_uvc_",
+        setting_types,
+        "_efficacy"
+      )] <- parameters_list$far_uvc_joint_efficacy
+      parameters_list[paste0(
+        "far_uvc_",
+        setting_types,
+        "_timestep"
+      )] <- parameters_list$far_uvc_joint_timestep
     }
   }
 
   # Return the list of model variables:
-  return(list(variables_list = variables_list, parameters_list = parameters_list))
-
+  return(list(
+    variables_list = variables_list,
+    parameters_list = parameters_list
+  ))
 }
 
 #' Generate a vector of the initial disease states of all individuals in the population
@@ -174,7 +258,6 @@ create_variables <- function(parameters_list) {
 #' @family variables
 #' @export
 generate_initial_disease_states <- function(parameters_list) {
-
   # Checking that the parameters contain the initial human population size, proportion
   # initially exposed, and a seed:
   if (!("number_initial_S" %in% names(parameters_list))) {
@@ -204,31 +287,36 @@ generate_initial_disease_states <- function(parameters_list) {
   population_index <- 1:length(initial_disease_states)
 
   # Sample indices between 1:human population to set those initially exposed:
-  exposed_index <- sample(x = population_index,
-                          size = parameters_list$number_initial_E,
-                          replace = FALSE,
-                          prob = NULL)
+  exposed_index <- sample(
+    x = population_index,
+    size = parameters_list$number_initial_E,
+    replace = FALSE,
+    prob = NULL
+  )
   initial_disease_states[exposed_index] <- "E"
 
   # Sample indices between 1:human population (minus those initially exposed) to set those initially infectious:
-  infectious_index <- sample(x = population_index[-exposed_index],
-                             size = parameters_list$number_initial_I,
-                             replace = FALSE,
-                             prob = NULL)
+  infectious_index <- sample(
+    x = population_index[-exposed_index],
+    size = parameters_list$number_initial_I,
+    replace = FALSE,
+    prob = NULL
+  )
   initial_disease_states[infectious_index] <- "I"
 
   # Sample indices between 1:human population (minus those initially exposed) to set those initially infectious:
-  recovered_index <- sample(x = population_index[-c(exposed_index, infectious_index)],
-                            size = parameters_list$number_initial_R,
-                            replace = FALSE,
-                            prob = NULL)
+  recovered_index <- sample(
+    x = population_index[-c(exposed_index, infectious_index)],
+    size = parameters_list$number_initial_R,
+    replace = FALSE,
+    prob = NULL
+  )
   initial_disease_states[recovered_index] <- "R"
 
   # Replace the disease state at the sampled indices with to "E" (Exposed)
 
   # Return the vector of initial disease states:
   return(initial_disease_states)
-
 }
 
 #' Generates a vector of the age classes of all individuals in the population
@@ -238,16 +326,21 @@ generate_initial_disease_states <- function(parameters_list) {
 #' @family variables
 #' @export
 generate_initial_age_classes <- function(parameters_list) {
-
   # Check the parameters required are present in the parameters list:
   if (!("initial_proportion_child" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called initial_proportion_child")
+    stop(
+      "parameters list must contain a variable called initial_proportion_child"
+    )
   }
   if (!("initial_proportion_adult" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called initial_proportion_adult")
+    stop(
+      "parameters list must contain a variable called initial_proportion_adult"
+    )
   }
   if (!("initial_proportion_elderly" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called initial_proportion_elderly")
+    stop(
+      "parameters list must contain a variable called initial_proportion_elderly"
+    )
   }
   if (!("human_population" %in% names(parameters_list))) {
     stop("parameters list must contain a variable called human_population")
@@ -257,7 +350,14 @@ generate_initial_age_classes <- function(parameters_list) {
   }
 
   # Check the initial age class proportions sum to 1:
-  if (sum(parameters_list$initial_proportion_child, parameters_list$initial_proportion_adult, parameters_list$initial_proportion_elderly) != 1) {
+  if (
+    sum(
+      parameters_list$initial_proportion_child,
+      parameters_list$initial_proportion_adult,
+      parameters_list$initial_proportion_elderly
+    ) !=
+      1
+  ) {
     stop("initial age class proportions do not sum to 1")
   }
 
@@ -265,19 +365,22 @@ generate_initial_age_classes <- function(parameters_list) {
   set.seed(parameters_list$seed)
 
   # Store age group proportions in a single vector:
-  age_group_proportions <- c(parameters_list$initial_proportion_child,
-                             parameters_list$initial_proportion_adult,
-                             parameters_list$initial_proportion_elderly)
+  age_group_proportions <- c(
+    parameters_list$initial_proportion_child,
+    parameters_list$initial_proportion_adult,
+    parameters_list$initial_proportion_elderly
+  )
 
   # Use the initial age class proportions to sample and create a vector of initial age classes:
-  age_classes <- sample(c("child", "adult", "elderly"),
-                        size = parameters_list$human_population,
-                        replace = TRUE,
-                        prob = age_group_proportions)
+  age_classes <- sample(
+    c("child", "adult", "elderly"),
+    size = parameters_list$human_population,
+    replace = TRUE,
+    prob = age_group_proportions
+  )
 
   # Return the vector of initial age classes:
   return(age_classes)
-
 }
 
 #' Generate a vector of school assignments for all individuals in the population
@@ -288,7 +391,6 @@ generate_initial_age_classes <- function(parameters_list) {
 #' @family variables
 #' @export
 generate_initial_schools <- function(parameters_list, age_class_variable) {
-
   # Check that the requisite parameters are present:
   if (!("human_population" %in% names(parameters_list))) {
     stop("parameters list must contain a variable called human_population")
@@ -303,7 +405,9 @@ generate_initial_schools <- function(parameters_list, age_class_variable) {
     stop("parameters list must contain a variable called school_sdlog")
   }
   if (!("school_student_staff_ratio" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called school_student_staff_ratio")
+    stop(
+      "parameters list must contain a variable called school_student_staff_ratio"
+    )
   }
 
   set.seed(parameters_list$seed)
@@ -311,22 +415,35 @@ generate_initial_schools <- function(parameters_list, age_class_variable) {
   # Assign children to schools
   num_children <- age_class_variable$get_size_of("child")
   index_children <- age_class_variable$get_index_of("child")$to_vector()
-  school_sizes <- sample_log_normal(N = num_children,
-                                    prop_max = parameters_list$school_prop_max,
-                                    meanlog = parameters_list$school_meanlog,
-                                    sdlog = parameters_list$school_sdlog)
-  child_school_indices <- unlist(sapply(1:length(school_sizes), function(i) rep(as.character(i), school_sizes[i])))
+  school_sizes <- sample_log_normal(
+    N = num_children,
+    prop_max = parameters_list$school_prop_max,
+    meanlog = parameters_list$school_meanlog,
+    sdlog = parameters_list$school_sdlog
+  )
+  child_school_indices <- unlist(sapply(
+    1:length(school_sizes),
+    function(i) rep(as.character(i), school_sizes[i])
+  ))
   child_school_assignments <- sample(child_school_indices, replace = FALSE)
 
   # Assign staff to schools
-  staff_sizes <- ceiling(school_sizes / parameters_list$school_student_staff_ratio)
-  staff_school_indices <- unlist(sapply(1:length(staff_sizes), function(i) rep(as.character(i), staff_sizes[i])))
+  staff_sizes <- ceiling(
+    school_sizes / parameters_list$school_student_staff_ratio
+  )
+  staff_school_indices <- unlist(sapply(
+    1:length(staff_sizes),
+    function(i) rep(as.character(i), staff_sizes[i])
+  ))
   index_adults <- age_class_variable$get_index_of("adult")$to_vector()
   index_staff <- sample(index_adults, size = sum(staff_sizes), replace = FALSE)
   staff_school_assignments <- sample(staff_school_indices, replace = FALSE)
 
   # School assignments for all individuals
-  schools_vector <- vector(mode = "character", length = parameters_list$human_population)
+  schools_vector <- vector(
+    mode = "character",
+    length = parameters_list$human_population
+  )
   schools_vector[index_children] <- child_school_assignments
   schools_vector[schools_vector == ""] <- "0"
   schools_vector[index_staff] <- staff_school_assignments
@@ -344,8 +461,10 @@ generate_initial_schools <- function(parameters_list, age_class_variable) {
 #'
 #' @family variables
 #' @export
-generate_initial_schools_bootstrap <- function(parameters_list, age_class_variable) {
-
+generate_initial_schools_bootstrap <- function(
+  parameters_list,
+  age_class_variable
+) {
   # Check that the requisite parameters are present:
   if (!("human_population" %in% names(parameters_list))) {
     stop("parameters list must contain a variable called human_population")
@@ -354,10 +473,14 @@ generate_initial_schools_bootstrap <- function(parameters_list, age_class_variab
     stop("parameters list must contain a variable called seed")
   }
   if (!("school_student_staff_ratio" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called school_student_staff_ratio")
+    stop(
+      "parameters list must contain a variable called school_student_staff_ratio"
+    )
   }
   if (!("school_distribution_country" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called school_distribution_country")
+    stop(
+      "parameters list must contain a variable called school_distribution_country"
+    )
   }
 
   # Calculating number of children and assigning them to schools
@@ -368,9 +491,14 @@ generate_initial_schools_bootstrap <- function(parameters_list, age_class_variab
     empirical_school_sizes <- empirical_school_sizes[empirical_school_sizes > 0]
   } else if (parameters_list$school_distribution_country == "USA") {
     schools_usa_total <- dplyr::filter(schools_usa, type == "total")
-    empirical_school_sizes <- rep(schools_usa_total$size_midpoint, schools_usa_total$count)
+    empirical_school_sizes <- rep(
+      schools_usa_total$size_midpoint,
+      schools_usa_total$count
+    )
   } else {
-    stop("school_distribution_country must be set to either UK or USA - other countries not implemented yet")
+    stop(
+      "school_distribution_country must be set to either UK or USA - other countries not implemented yet"
+    )
   }
 
   num_children <- age_class_variable$get_size_of("child") # get number of children
@@ -379,30 +507,42 @@ generate_initial_schools_bootstrap <- function(parameters_list, age_class_variab
   remaining <- num_children
 
   # Sampling schools and calculating the number of children remaining to allocate
-  while(remaining > 0) {
+  while (remaining > 0) {
     draw <- sample(empirical_school_sizes, size = 1)
     school_sizes <- c(school_sizes, draw)
     remaining <- remaining - draw
   }
 
   # Correcting for instances where we overflow above the total number of children
-  if(sum(school_sizes) >= num_children) {
-    school_sizes[length(school_sizes)] <- school_sizes[length(school_sizes)] - (sum(school_sizes) - num_children)
+  if (sum(school_sizes) >= num_children) {
+    school_sizes[length(school_sizes)] <- school_sizes[length(school_sizes)] -
+      (sum(school_sizes) - num_children)
   }
 
   # Creating schools assignment vector and randomising the ordering
-  school_indices <- unlist(sapply(1:length(school_sizes), function(i) rep(as.character(i), school_sizes[i])))
+  school_indices <- unlist(sapply(
+    1:length(school_sizes),
+    function(i) rep(as.character(i), school_sizes[i])
+  ))
   child_school_assignments <- sample(school_indices, replace = FALSE)
 
   # Assign staff to schools
-  staff_sizes <- ceiling(school_sizes / parameters_list$school_student_staff_ratio)
-  staff_school_indices <- unlist(sapply(1:length(staff_sizes), function(i) rep(as.character(i), staff_sizes[i])))
+  staff_sizes <- ceiling(
+    school_sizes / parameters_list$school_student_staff_ratio
+  )
+  staff_school_indices <- unlist(sapply(
+    1:length(staff_sizes),
+    function(i) rep(as.character(i), staff_sizes[i])
+  ))
   index_adults <- age_class_variable$get_index_of("adult")$to_vector()
   index_staff <- sample(index_adults, size = sum(staff_sizes), replace = FALSE)
   staff_school_assignments <- sample(staff_school_indices, replace = FALSE)
 
   # School assignments for all individuals
-  schools_vector <- vector(mode = "character", length = parameters_list$human_population)
+  schools_vector <- vector(
+    mode = "character",
+    length = parameters_list$human_population
+  )
   schools_vector[index_children] <- child_school_assignments
   schools_vector[schools_vector == ""] <- "0"
   schools_vector[index_staff] <- staff_school_assignments
@@ -417,8 +557,11 @@ generate_initial_schools_bootstrap <- function(parameters_list, age_class_variab
 #'
 #' @family variables
 #' @export
-generate_initial_workplaces <- function(parameters_list, age_class_variable, school_variable) {
-
+generate_initial_workplaces <- function(
+  parameters_list,
+  age_class_variable,
+  school_variable
+) {
   # Checking that the parameter list contains the requisite parameters
   if (!("human_population" %in% names(parameters_list))) {
     stop("parameters list must contain a variable called human_population")
@@ -441,12 +584,14 @@ generate_initial_workplaces <- function(parameters_list, age_class_variable, sch
     prop_max <- 0.1
     a <- 5.36
     c <- 1.34
-  } else if (parameters_list $workplace_distribution_country == "custom") {
+  } else if (parameters_list$workplace_distribution_country == "custom") {
     prop_max <- parameters_list$workplace_prop_max
     a <- parameters_list$workplace_a
-    c <-  parameters_list$workplace_c
-  } else if (parameters_list $workplace_distribution_country == "UK") {
-    stop("workplace_distribution_country can currently only be set to the USA or custom - we don't have data for the UK")
+    c <- parameters_list$workplace_c
+  } else if (parameters_list$workplace_distribution_country == "UK") {
+    stop(
+      "workplace_distribution_country can currently only be set to the USA or custom - we don't have data for the UK"
+    )
   } else {
     stop("incorrectly specified workplace_distribution_country")
   }
@@ -457,18 +602,28 @@ generate_initial_workplaces <- function(parameters_list, age_class_variable, sch
   index_adults <- age_class_variable$get_index_of("adult")$to_vector()
   index_unassigned_adults <- intersect(index_not_school, index_adults)
   if (parameters_list$workplace_distribution_country == "USA") {
-    workplace_sizes <- sample_offset_truncated_power_distribution(N = length(index_unassigned_adults),
-                                                                  prop_max = prop_max,
-                                                                  a = a,
-                                                                  c = c)
+    workplace_sizes <- sample_offset_truncated_power_distribution(
+      N = length(index_unassigned_adults),
+      prop_max = prop_max,
+      a = a,
+      c = c
+    )
   } else {
-    stop("workplace_distribution_country must be set to USA - other countries not implemented yet")
+    stop(
+      "workplace_distribution_country must be set to USA - other countries not implemented yet"
+    )
   }
-  workplace_indices <- unlist(sapply(1:length(workplace_sizes), function(i) rep(as.character(i), workplace_sizes[i])))
+  workplace_indices <- unlist(sapply(
+    1:length(workplace_sizes),
+    function(i) rep(as.character(i), workplace_sizes[i])
+  ))
   adult_workplace_assignments <- sample(workplace_indices, replace = FALSE)
 
   # Workplace assignments for all individuals
-  workplace_vector <- vector(mode = "character", length = parameters_list$human_population)
+  workplace_vector <- vector(
+    mode = "character",
+    length = parameters_list$human_population
+  )
   workplace_vector[index_unassigned_adults] <- adult_workplace_assignments
   workplace_vector[workplace_vector == ""] <- "0"
 
@@ -485,7 +640,6 @@ generate_initial_workplaces <- function(parameters_list, age_class_variable, sch
 #' @family variables
 #' @export
 generate_initial_leisure <- function(parameters_list, leisure_setting_sizes) {
-
   # Check that the requisite parameters are present:
   if (!("human_population" %in% names(parameters_list))) {
     stop("parameters list must contain a variable called human_population")
@@ -497,50 +651,67 @@ generate_initial_leisure <- function(parameters_list, leisure_setting_sizes) {
     stop("parameters list must contain a variable called leisure_mean_size")
   }
   if (!("leisure_overdispersion_size" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called leisure_overdispersion_size")
+    stop(
+      "parameters list must contain a variable called leisure_overdispersion_size"
+    )
   }
   if (!("leisure_mean_number_settings" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called leisure_mean_number_settings")
+    stop(
+      "parameters list must contain a variable called leisure_mean_number_settings"
+    )
   }
 
   # Setting the seed
   set.seed(parameters_list$seed)
 
   # Calculating the number of leisure visits that each person makes per week
-  leisure_visits_per_person_per_week <- rpois(n = parameters_list$human_population,
-                                              lambda = parameters_list$leisure_mean_number_settings)
-  leisure_visits_per_person_per_week[leisure_visits_per_person_per_week > 7] <- 7  # capping it at 1 leisure visit per day (max 7 per week)
+  leisure_visits_per_person_per_week <- rpois(
+    n = parameters_list$human_population,
+    lambda = parameters_list$leisure_mean_number_settings
+  )
+  leisure_visits_per_person_per_week[
+    leisure_visits_per_person_per_week > 7
+  ] <- 7 # capping it at 1 leisure visit per day (max 7 per week)
 
   # Populating a list with the leisure visits made by each individual
-  leisure_visit_list <- vector(mode = "list", length = parameters_list$human_population)
+  leisure_visit_list <- vector(
+    mode = "list",
+    length = parameters_list$human_population
+  )
   for (i in 1:parameters_list$human_population) {
-
     # Creating a temporary vector of leisure visits for that person
     # -> Each element indicates where they visit on which day of the week
     #    and a 0 means nowhere visited on that day of the week
     temp_leisure_visit <- rep(0, 7)
 
     # Sampling which locations individuals visit for their leisure visits (weighted according to leisure setting size)
-    temp_location_leisure_visits <- sample(x = 1:length(leisure_setting_sizes),
-                                           size = leisure_visits_per_person_per_week[i],
-                                           replace = FALSE,
-                                           prob = leisure_setting_sizes)
+    temp_location_leisure_visits <- sample(
+      x = 1:length(leisure_setting_sizes),
+      size = leisure_visits_per_person_per_week[i],
+      replace = FALSE,
+      prob = leisure_setting_sizes
+    )
 
     # Sampling which day(s) of the week the individual makes those visit(s) and assigning visits randomly
-    days_visits_made <- sample(x = 1:7, size = leisure_visits_per_person_per_week[i], replace = FALSE)
+    days_visits_made <- sample(
+      x = 1:7,
+      size = leisure_visits_per_person_per_week[i],
+      replace = FALSE
+    )
     if (leisure_visits_per_person_per_week[i] == 1) {
       temp_leisure_visit[days_visits_made] <- temp_location_leisure_visits
     } else {
-      temp_leisure_visit[days_visits_made] <- sample(x = temp_location_leisure_visits,
-                                                     size = leisure_visits_per_person_per_week[i],
-                                                     replace = FALSE)
+      temp_leisure_visit[days_visits_made] <- sample(
+        x = temp_location_leisure_visits,
+        size = leisure_visits_per_person_per_week[i],
+        replace = FALSE
+      )
     }
     leisure_visit_list[[i]] <- temp_leisure_visit
   }
 
   return(leisure_visit_list) # a list where each element contains a vector that specifies the ids of the leisure settings
-                             # that each individual visits e.g. list(c(2, 6, 19, 35), c(1, 8), c(6, 10, 45)... etc)
-
+  # that each individual visits e.g. list(c(2, 6, 19, 35), c(1, 8), c(6, 10, 45)... etc)
 }
 
 #' Generates a vector of households for all individuals in the population
@@ -550,7 +721,6 @@ generate_initial_leisure <- function(parameters_list, leisure_setting_sizes) {
 #' @family variables
 #' @export
 generate_initial_households <- function(parameters_list, age_class_variable) {
-
   # Check that the requisite parameters are present:
   if (!("human_population" %in% names(parameters_list))) {
     stop("parameters list must contain a variable called human_population")
@@ -566,15 +736,24 @@ generate_initial_households <- function(parameters_list, age_class_variable) {
   set.seed(parameters_list$seed)
 
   ## Checking population size N is the same as implied by age_class_variable
-  if (parameters_list$human_population != age_class_variable$get_size_of(age_class_variable$get_categories())) {
+  if (
+    parameters_list$human_population !=
+      age_class_variable$get_size_of(age_class_variable$get_categories())
+  ) {
     stop("Human population and age_class_vector are different lengths")
   }
 
   ## Extracting out the vector of underlying values from age_class_variable
   age_class_vector <- rep("", parameters_list$human_population)
-  age_class_vector[age_class_variable$get_index_of("child")$to_vector()] <- "child"
-  age_class_vector[age_class_variable$get_index_of("adult")$to_vector()] <- "adult"
-  age_class_vector[age_class_variable$get_index_of("elderly")$to_vector()] <- "elderly"
+  age_class_vector[age_class_variable$get_index_of(
+    "child"
+  )$to_vector()] <- "child"
+  age_class_vector[age_class_variable$get_index_of(
+    "adult"
+  )$to_vector()] <- "adult"
+  age_class_vector[age_class_variable$get_index_of(
+    "elderly"
+  )$to_vector()] <- "elderly"
 
   ## Track which individuals are assigned
   assigned <- rep(FALSE, parameters_list$human_population)
@@ -582,14 +761,13 @@ generate_initial_households <- function(parameters_list, age_class_variable) {
   household_counter <- 1
 
   ## Looping over this whilst there still remain any unassigned individuals
-  while(sum(assigned) < parameters_list$human_population) {
-
+  while (sum(assigned) < parameters_list$human_population) {
     # Check if only children are left unassigned - if this is the case, then we just distribute
     # them randomly across households
     unassigned_indices <- which(!assigned)
-    if(all(age_class_vector[unassigned_indices] == "child")) {
+    if (all(age_class_vector[unassigned_indices] == "child")) {
       # Distribute remaining children across existing households randomly
-      for(child_idx in unassigned_indices) {
+      for (child_idx in unassigned_indices) {
         selected_household <- sample(household_counter, 1)
         assigned[child_idx] <- TRUE
         individual_households[child_idx] <- selected_household
@@ -604,23 +782,25 @@ generate_initial_households <- function(parameters_list, age_class_variable) {
     temp_household <- c()
 
     ## Looping over this whilst current household isn't full
-    while(length(temp_household) < household_size && sum(assigned) < parameters_list$human_population) {
-
+    while (
+      length(temp_household) < household_size &&
+        sum(assigned) < parameters_list$human_population
+    ) {
       # Randomly select an unassigned individual
       candidates <- which(!assigned)
       selected <- sample(x = candidates, size = 1)
 
       # Ensure selected individual meets the household formation criteria (i.e. children have to have at least 1 adult in household)
-      if(age_class_vector[selected] == "child") {
-
+      if (age_class_vector[selected] == "child") {
         ## Check whether current household has an adult - if it does, just add the child
-        if(sum(age_class_vector[temp_household] == "adult") >= 1) {
+        if (sum(age_class_vector[temp_household] == "adult") >= 1) {
           temp_household <- c(temp_household, selected)
           assigned[selected] <- TRUE
-        } else { # if not, get an adult to be added to the household
+        } else {
+          # if not, get an adult to be added to the household
           # Ensure there is at least one unassigned adult to pair with
           unassigned_adults <- which(age_class_vector == "adult" & !assigned)
-          if(length(unassigned_adults) < 1) {
+          if (length(unassigned_adults) < 1) {
             # No available adults to pair with the child, break from the inner loop
             break
           }
@@ -630,17 +810,16 @@ generate_initial_households <- function(parameters_list, age_class_variable) {
           temp_household <- c(temp_household, selected, adults_to_add)
           assigned[c(selected, adults_to_add)] <- TRUE
         }
-
       } else {
         # Add the individual to the household if there's enough space
-        if((length(temp_household) + 1) <= household_size) {
+        if ((length(temp_household) + 1) <= household_size) {
           temp_household <- c(temp_household, selected)
           assigned[selected] <- TRUE
         }
       }
     }
     # Add the completed household to the list of households, if any members were added
-    if(length(temp_household) > 0) {
+    if (length(temp_household) > 0) {
       individual_households[temp_household] <- household_counter
       household_counter <- household_counter + 1
     }
@@ -663,7 +842,6 @@ generate_initial_households <- function(parameters_list, age_class_variable) {
 #' @family variables
 #' @export
 generate_initial_households_bootstrap <- function(parameters_list) {
-
   ## Checking country is either "UK" or "USA"
   country <- parameters_list$household_distribution_country
   if (!(country %in% c("UK", "USA"))) {
@@ -673,7 +851,8 @@ generate_initial_households_bootstrap <- function(parameters_list) {
   ## Using data from RTI's synthetic population for San Francisco to bootstrap https://fred.publichealth.pitt.edu/syn_pops
   if (country == "USA") {
     ref_panel <- baseline_household_demographics_usa
-  } else if (country == "UK") {   ## Using Hinch et al's synthetic population from ONS
+  } else if (country == "UK") {
+    ## Using Hinch et al's synthetic population from ONS
     ref_panel <- baseline_household_demographics_uk
   }
 
@@ -684,14 +863,16 @@ generate_initial_households_bootstrap <- function(parameters_list) {
   ## Looping over this whilst there still remain any unassigned individuals
   counter <- 1
   household_counter <- 1
-  while(counter <= parameters_list$human_population) {
-
+  while (counter <= parameters_list$human_population) {
     ## Sampling a random household from the reference panel
     temp_index <- sample(1:nrow(ref_panel), 1, replace = TRUE)
     random_household <- ref_panel[temp_index, ]
 
     ## Expanding out the random household
-    household_age_individuals <- rep(x = names(random_household), times = random_household)
+    household_age_individuals <- rep(
+      x = names(random_household),
+      times = random_household
+    )
     for (i in 1:length(household_age_individuals)) {
       age_class_vector[counter] <- household_age_individuals[i]
       individual_households[counter] <- household_counter
@@ -704,22 +885,32 @@ generate_initial_households_bootstrap <- function(parameters_list) {
   ## them to houses and age-groups
   if (sum(is.na(individual_households)) > 0) {
     index_unassigned <- which(is.na(individual_households))
-    if(length(index_unassigned) > 3) {
+    if (length(index_unassigned) > 3) {
       stop("too many NAs in household generation - check this")
     }
-    individual_households[index] <- sample(x = 1:max(individual_households), size = length(index_unassigned), replace = TRUE)
-    age_class_vector[index] <- sample(x = unique(age_class_vector), size = length(index_unassigned), replace = TRUE,
-                                      prob = unname(table(age_class_vector)) / parameters_list$human_population)
+    individual_households[index] <- sample(
+      x = 1:max(individual_households),
+      size = length(index_unassigned),
+      replace = TRUE
+    )
+    age_class_vector[index] <- sample(
+      x = unique(age_class_vector),
+      size = length(index_unassigned),
+      replace = TRUE,
+      prob = unname(table(age_class_vector)) / parameters_list$human_population
+    )
   }
 
   ## Scrambling the order of individuals so that household members don't appear right next to each other
   ## -> This might not be needed, need to give this some thought
-  scrambled_index <- sample(x = 1:parameters_list$human_population,
-                            size = parameters_list$human_population,
-                            replace = FALSE)
+  scrambled_index <- sample(
+    x = 1:parameters_list$human_population,
+    size = parameters_list$human_population,
+    replace = FALSE
+  )
 
-  return(list(individual_households = individual_households[scrambled_index],
-              age_class_vector = age_class_vector[scrambled_index]))
-
+  return(list(
+    individual_households = individual_households[scrambled_index],
+    age_class_vector = age_class_vector[scrambled_index]
+  ))
 }
-

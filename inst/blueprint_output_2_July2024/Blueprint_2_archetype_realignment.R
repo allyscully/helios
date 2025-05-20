@@ -34,11 +34,13 @@ library(tidyverse)
 #----- 2) Determine the final sizes ------------------------------------------------------------------------
 
 # Load the base set of parameters:
-parameters_list <- parameters_list <- get_parameters(overrides = list(
-  human_population = 10000,
-  endemic_or_epidemic = "epidemic",
-  simulation_time = 500
-))
+parameters_list <- parameters_list <- get_parameters(
+  overrides = list(
+    human_population = 10000,
+    endemic_or_epidemic = "epidemic",
+    simulation_time = 500
+  )
+)
 
 # Run the example of the final size function:
 R0s <- c(1.5, 2.5, 9)
@@ -47,13 +49,13 @@ R0s <- c(1.5, 2.5, 9)
 matched_final_sizes <- c()
 
 # Use finalsize to calculate the final size for each of the R0s:
-for(i in 1:length(R0s)) {
-
+for (i in 1:length(R0s)) {
   # Prepare the contact matrix
   contact_matrix <- matrix(1.0) / parameters_list$human_population
 
   # Determine what proportion of the population are susceptible:
-  initially_susceptible <- (parameters_list$human_population - parameters_list$number_initially_exposed)/
+  initially_susceptible <- (parameters_list$human_population -
+    parameters_list$number_initially_exposed) /
     parameters_list$human_population
 
   # Store the susceptibility:
@@ -63,11 +65,13 @@ for(i in 1:length(R0s)) {
   p_susceptibility <- matrix(1)
 
   # Generate the final sizes expected to be seen for a given R0:
-  matched_final_sizes[i] <- final_size(r0 = R0s[i],
-                                       contact_matrix = contact_matrix,
-                                       susceptibility = susceptibility,
-                                       demography_vector = parameters_list$human_population,
-                                       p_susceptibility = p_susceptibility)$p_infected
+  matched_final_sizes[i] <- final_size(
+    r0 = R0s[i],
+    contact_matrix = contact_matrix,
+    susceptibility = susceptibility,
+    demography_vector = parameters_list$human_population,
+    p_susceptibility = p_susceptibility
+  )$p_infected
 }
 
 # The final sizes to match:
@@ -76,35 +80,41 @@ matched_final_sizes
 #----- 3) Influenza Testing ------------------------------------------------------------------------
 
 # Use generate_betas() to create a dataframe of betas for all settings:
-betas <- generate_betas(beta_community = 0.069,
-                        household_ratio = 3,
-                        school_ratio = 3,
-                        workplace_ratio = 3,
-                        leisure_ratio = 3)
+betas <- generate_betas(
+  beta_community = 0.069,
+  household_ratio = 3,
+  school_ratio = 3,
+  workplace_ratio = 3,
+  leisure_ratio = 3
+)
 
 # 0.058 -> 0.4047 final size
 # 0.068 -> 0.5666 final size
 # 0.069 -> 0.5736 final size
 
 # Generate a list of model parameters:
-parameters_list <- get_parameters(overrides = list(
-  human_population = 10000,
-  beta_household = betas$beta_household,
-  beta_school = betas$beta_school,
-  beta_workplace = betas$beta_workplace,
-  beta_leisure = betas$beta_leisure,
-  beta_community = betas$beta_community,
-  duration_exposed = 1,
-  duration_infectious = 2,
-  endemic_or_epidemic = "epidemic",
-  simulation_time = 175
-))
+parameters_list <- get_parameters(
+  overrides = list(
+    human_population = 10000,
+    beta_household = betas$beta_household,
+    beta_school = betas$beta_school,
+    beta_workplace = betas$beta_workplace,
+    beta_leisure = betas$beta_leisure,
+    beta_community = betas$beta_community,
+    duration_exposed = 1,
+    duration_infectious = 2,
+    endemic_or_epidemic = "epidemic",
+    simulation_time = 175
+  )
+)
 
 # Run the simulation:
-simulation_output <- run_simulation(parameters_list = parameters_list);
+simulation_output <- run_simulation(parameters_list = parameters_list)
 
 # Check the final size:
-(simulation_output$R_count / 10000)[(length(simulation_output$R_count) - 10):length(simulation_output$R_count)]
+(simulation_output$R_count / 10000)[
+  (length(simulation_output$R_count) - 10):length(simulation_output$R_count)
+]
 matched_final_sizes[1]
 
 # Calculate the final proportion of individuals in each compartment:
@@ -112,16 +122,25 @@ simulation_output %>%
   mutate(S_prop = S_count / parameters_list$human_population) %>%
   mutate(E_prop = E_count / parameters_list$human_population) %>%
   mutate(I_prop = I_count / parameters_list$human_population) %>%
-  mutate(R_prop = R_count / parameters_list$human_population) -> simulation_output_processed
+  mutate(
+    R_prop = R_count / parameters_list$human_population
+  ) -> simulation_output_processed
 
 # Plot the dynamics:
 simulation_output %>%
-  mutate(S_prop = S_count / parameters_list$human_population,
-         E_prop = E_count / parameters_list$human_population,
-         I_prop = I_count / parameters_list$human_population,
-         R_prop = R_count / parameters_list$human_population) %>%
-  pivot_longer(cols = c(S_prop, E_prop, I_prop, R_prop), names_to = "State", values_to = "Proportion") %>%
-  ggplot(aes(x = timestep, y = Proportion, colour = State)) + geom_line(linewidth = 1.2) +
+  mutate(
+    S_prop = S_count / parameters_list$human_population,
+    E_prop = E_count / parameters_list$human_population,
+    I_prop = I_count / parameters_list$human_population,
+    R_prop = R_count / parameters_list$human_population
+  ) %>%
+  pivot_longer(
+    cols = c(S_prop, E_prop, I_prop, R_prop),
+    names_to = "State",
+    values_to = "Proportion"
+  ) %>%
+  ggplot(aes(x = timestep, y = Proportion, colour = State)) +
+  geom_line(linewidth = 1.2) +
   theme_bw() +
   labs(x = "Time", y = "Count", colour = "State") +
   scale_x_continuous(expand = c(0, 0)) +
@@ -133,31 +152,37 @@ simulation_output %>%
 #----- 4) SARS-CoV-2 Testing -----------------------------------------------------------------------
 
 # Use generate_betas() to create a dataframe of betas for all settings:
-betas <- generate_betas(beta_community = 0.08,
-                        household_ratio = 3,
-                        school_ratio = 3,
-                        workplace_ratio = 3,
-                        leisure_ratio = 3)
+betas <- generate_betas(
+  beta_community = 0.08,
+  household_ratio = 3,
+  school_ratio = 3,
+  workplace_ratio = 3,
+  leisure_ratio = 3
+)
 
 # Generate a list of model parameters:
-parameters_list <- get_parameters(overrides = list(
-  human_population = 10000,
-  beta_household = betas$beta_household,
-  beta_school = betas$beta_school,
-  beta_workplace = betas$beta_workplace,
-  beta_leisure = betas$beta_leisure,
-  beta_community = betas$beta_community,
-  duration_exposed = 2,
-  duration_infectious = 4,
-  endemic_or_epidemic = "epidemic",
-  simulation_time = 130
-))
+parameters_list <- get_parameters(
+  overrides = list(
+    human_population = 10000,
+    beta_household = betas$beta_household,
+    beta_school = betas$beta_school,
+    beta_workplace = betas$beta_workplace,
+    beta_leisure = betas$beta_leisure,
+    beta_community = betas$beta_community,
+    duration_exposed = 2,
+    duration_infectious = 4,
+    endemic_or_epidemic = "epidemic",
+    simulation_time = 130
+  )
+)
 
 # Run the simulation:
 simulation_output <- run_simulation(parameters_list = parameters_list)
 
 # Check the final size:
-(simulation_output$R_count / 10000)[(length(simulation_output$R_count) - 10):length(simulation_output$R_count)]
+(simulation_output$R_count / 10000)[
+  (length(simulation_output$R_count) - 10):length(simulation_output$R_count)
+]
 matched_final_sizes[2]
 
 # Calculate the final proportion of individuals in each compartment:
@@ -165,16 +190,25 @@ simulation_output %>%
   mutate(S_prop = S_count / parameters_list$human_population) %>%
   mutate(E_prop = E_count / parameters_list$human_population) %>%
   mutate(I_prop = I_count / parameters_list$human_population) %>%
-  mutate(R_prop = R_count / parameters_list$human_population) -> simulation_output_processed
+  mutate(
+    R_prop = R_count / parameters_list$human_population
+  ) -> simulation_output_processed
 
 # Plot the dynamics:
 simulation_output %>%
-  mutate(S_prop = S_count / parameters_list$human_population,
-         E_prop = E_count / parameters_list$human_population,
-         I_prop = I_count / parameters_list$human_population,
-         R_prop = R_count / parameters_list$human_population) %>%
-  pivot_longer(cols = c(S_prop, E_prop, I_prop, R_prop), names_to = "State", values_to = "Proportion") %>%
-  ggplot(aes(x = timestep, y = Proportion, colour = State)) + geom_line(linewidth = 1.2) +
+  mutate(
+    S_prop = S_count / parameters_list$human_population,
+    E_prop = E_count / parameters_list$human_population,
+    I_prop = I_count / parameters_list$human_population,
+    R_prop = R_count / parameters_list$human_population
+  ) %>%
+  pivot_longer(
+    cols = c(S_prop, E_prop, I_prop, R_prop),
+    names_to = "State",
+    values_to = "Proportion"
+  ) %>%
+  ggplot(aes(x = timestep, y = Proportion, colour = State)) +
+  geom_line(linewidth = 1.2) +
   theme_bw() +
   labs(x = "Time", y = "Count", colour = "State") +
   scale_x_continuous(expand = c(0, 0)) +
@@ -186,26 +220,31 @@ simulation_output %>%
 #----- 5) Measles Testing --------------------------------------------------------------------------
 
 # Use generate_betas() to create a dataframe of betas for all settings:
-betas <- generate_betas(beta_community = 0.42,
-                        household_ratio = 3,
-                        school_ratio = 3,
-                        workplace_ratio = 3,
-                        leisure_ratio = 3)
+betas <- generate_betas(
+  beta_community = 0.42,
+  household_ratio = 3,
+  school_ratio = 3,
+  workplace_ratio = 3,
+  leisure_ratio = 3
+)
 
 # Generate a list of model parameters:
-parameters_list <- get_parameters(overrides = list(
-  human_population = 10000,
-  beta_household = betas$beta_household,
-  beta_school = betas$beta_school,
-  beta_workplace = betas$beta_workplace,
-  beta_leisure = betas$beta_leisure,
-  beta_community = betas$beta_community,
-  endemic_or_epidemic = "epidemic",
-  simulation_time = 200
-))
+parameters_list <- get_parameters(
+  overrides = list(
+    human_population = 10000,
+    beta_household = betas$beta_household,
+    beta_school = betas$beta_school,
+    beta_workplace = betas$beta_workplace,
+    beta_leisure = betas$beta_leisure,
+    beta_community = betas$beta_community,
+    endemic_or_epidemic = "epidemic",
+    simulation_time = 200
+  )
+)
 
 # Run the simulation:
-simulation_output <- run_simulation(parameters_list = parameters_list); beep(1)
+simulation_output <- run_simulation(parameters_list = parameters_list)
+beep(1)
 
 # Check the final size:
 (simulation_output$R_count / 10000)[390:400]
@@ -215,16 +254,25 @@ simulation_output %>%
   mutate(S_prop = S_count / parameters_list$human_population) %>%
   mutate(E_prop = E_count / parameters_list$human_population) %>%
   mutate(I_prop = I_count / parameters_list$human_population) %>%
-  mutate(R_prop = R_count / parameters_list$human_population) -> simulation_output_processed
+  mutate(
+    R_prop = R_count / parameters_list$human_population
+  ) -> simulation_output_processed
 
 # Plot the dynamics:
 simulation_output %>%
-  mutate(S_prop = S_count / parameters_list$human_population,
-         E_prop = E_count / parameters_list$human_population,
-         I_prop = I_count / parameters_list$human_population,
-         R_prop = R_count / parameters_list$human_population) %>%
-  pivot_longer(cols = c(S_prop, E_prop, I_prop, R_prop), names_to = "State", values_to = "Proportion") %>%
-  ggplot(aes(x = timestep, y = Proportion, colour = State)) + geom_line(linewidth = 1.2) +
+  mutate(
+    S_prop = S_count / parameters_list$human_population,
+    E_prop = E_count / parameters_list$human_population,
+    I_prop = I_count / parameters_list$human_population,
+    R_prop = R_count / parameters_list$human_population
+  ) %>%
+  pivot_longer(
+    cols = c(S_prop, E_prop, I_prop, R_prop),
+    names_to = "State",
+    values_to = "Proportion"
+  ) %>%
+  ggplot(aes(x = timestep, y = Proportion, colour = State)) +
+  geom_line(linewidth = 1.2) +
   theme_bw() +
   labs(x = "Time", y = "Count", colour = "State") +
   scale_x_continuous(expand = c(0, 0)) +

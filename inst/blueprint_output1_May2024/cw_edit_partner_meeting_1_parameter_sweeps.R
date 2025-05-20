@@ -11,8 +11,13 @@ library(grid)
 library(gridExtra)
 library(parallel)
 
-generate_betas <- function(beta_community, household_ratio, school_ratio, workplace_ratio, leisure_ratio) {
-
+generate_betas <- function(
+  beta_community,
+  household_ratio,
+  school_ratio,
+  workplace_ratio,
+  leisure_ratio
+) {
   # Use the community betas to generate the household, school, workplace, and leisure betas:
   beta_household = household_ratio * beta_community
   beta_school = school_ratio * beta_community
@@ -25,20 +30,28 @@ generate_betas <- function(beta_community, household_ratio, school_ratio, workpl
     beta_school = beta_school,
     beta_workplace = beta_workplace,
     beta_leisure = beta_leisure,
-    beta_community = beta_community)
+    beta_community = beta_community
+  )
 
   # Append columns giving the proportion of the total beta accounted for in each setting:
   betas %>%
-    mutate(beta_total = beta_household + beta_school + beta_workplace + beta_leisure + beta_community) %>%
-    mutate(prop_household = beta_household / beta_total,
-           prop_school = beta_school / beta_total,
-           prop_workplace = beta_workplace / beta_total,
-           prop_leisure = beta_leisure / beta_total,
-           prop_community = beta_community / beta_total) -> betas
+    mutate(
+      beta_total = beta_household +
+        beta_school +
+        beta_workplace +
+        beta_leisure +
+        beta_community
+    ) %>%
+    mutate(
+      prop_household = beta_household / beta_total,
+      prop_school = beta_school / beta_total,
+      prop_workplace = beta_workplace / beta_total,
+      prop_leisure = beta_leisure / beta_total,
+      prop_community = beta_community / beta_total
+    ) -> betas
 
   # Return the data frame of betas:
   return(betas)
-
 }
 
 #----- 2) Parameter Sweep Set-Up -------------------------------------------------------------------
@@ -66,11 +79,13 @@ r0 = c(1.25, 1.5, 2, 2.5, 3)
 beta_communities <- c(0.036, 0.044, 0.062, 0.080, 0.097)
 
 # Use the generate_betas() function to generate the correpsonding betas for the rest of the settings:
-simulation_betas <- generate_betas(beta_community = beta_communities,
-                                   household_ratio = 3,
-                                   school_ratio = 3,
-                                   workplace_ratio = 3,
-                                   leisure_ratio = 3)[,1:6]
+simulation_betas <- generate_betas(
+  beta_community = beta_communities,
+  household_ratio = 3,
+  school_ratio = 3,
+  workplace_ratio = 3,
+  leisure_ratio = 3
+)[, 1:6]
 
 # Append a vector of R0 values to the corresponding betas:
 simulation_betas <- data.frame(r0, simulation_betas)
@@ -88,11 +103,13 @@ coverage_type <- c("random", "targeted")
 iterations <- 1:5
 
 # Set up the unique simulations to run
-simulations_to_run <- expand.grid("iteration" = iterations,
-                                  "r0" = r0,
-                                  "coverage" = far_uvc_coverage,
-                                  "efficacy" = far_uvc_efficacy,
-                                  "coverage_type" = coverage_type)
+simulations_to_run <- expand.grid(
+  "iteration" = iterations,
+  "r0" = r0,
+  "coverage" = far_uvc_coverage,
+  "efficacy" = far_uvc_efficacy,
+  "coverage_type" = coverage_type
+)
 
 # Append a column for simulation ID:
 simulations_to_run$ID <- 1:nrow(simulations_to_run)
@@ -112,38 +129,45 @@ parameter_lists <- list()
 
 # Set up the simulation parameter lists for each row of the simulations_to_run dataframe:
 human_population <- 10000
-for(i in 1:nrow(simulations_to_run)) {
-
+for (i in 1:nrow(simulations_to_run)) {
   # Set up the parameters list:
-  parameter_lists[[i]] <- get_parameters(overrides = list(
-    human_population = human_population,
-    beta_household = simulations_to_run$beta_household[i],
-    beta_school = simulations_to_run$beta_school[i],
-    beta_workplace = simulations_to_run$beta_workplace[i],
-    beta_leisure = simulations_to_run$beta_leisure[i],
-    beta_community = simulations_to_run$beta_community[i],
-    endemic_or_epidemic = "epidemic",
-    simulation_time = simulation_timesteps
-  ))
+  parameter_lists[[i]] <- get_parameters(
+    overrides = list(
+      human_population = human_population,
+      beta_household = simulations_to_run$beta_household[i],
+      beta_school = simulations_to_run$beta_school[i],
+      beta_workplace = simulations_to_run$beta_workplace[i],
+      beta_leisure = simulations_to_run$beta_leisure[i],
+      beta_community = simulations_to_run$beta_community[i],
+      endemic_or_epidemic = "epidemic",
+      simulation_time = simulation_timesteps
+    )
+  )
 
   # If coverage and efficacy are greater than 0, append the far UVC parameters:
-  if(simulations_to_run$coverage[i] > 0 | simulations_to_run$efficacy[i] > 0) {
+  if (simulations_to_run$coverage[i] > 0 | simulations_to_run$efficacy[i] > 0) {
     parameter_lists[[i]] %>%
-      set_uvc(setting = "school",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) %>%
-      set_uvc(setting = "workplace",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) %>%
-      set_uvc(setting = "leisure",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) -> parameter_lists[[i]]
+      set_uvc(
+        setting = "school",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) %>%
+      set_uvc(
+        setting = "workplace",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) %>%
+      set_uvc(
+        setting = "leisure",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) -> parameter_lists[[i]]
   }
 }
 
@@ -157,37 +181,44 @@ clusterEvalQ(cl, library(helios))
 
 # Run through the simulations in simulations_to_run:
 results <- parLapply(cl, 1:nrow(simulations_to_run), function(i) {
-
   # Set up the parameters list:
-  temp_parameter_list <- get_parameters(overrides = list(
-    human_population = 10000,
-    beta_household = simulations_to_run$beta_household[i],
-    beta_school = simulations_to_run$beta_school[i],
-    beta_workplace = simulations_to_run$beta_workplace[i],
-    beta_leisure = simulations_to_run$beta_leisure[i],
-    beta_community = simulations_to_run$beta_community[i],
-    endemic_or_epidemic = "epidemic",
-    simulation_time = simulation_timesteps
-  ))
+  temp_parameter_list <- get_parameters(
+    overrides = list(
+      human_population = 10000,
+      beta_household = simulations_to_run$beta_household[i],
+      beta_school = simulations_to_run$beta_school[i],
+      beta_workplace = simulations_to_run$beta_workplace[i],
+      beta_leisure = simulations_to_run$beta_leisure[i],
+      beta_community = simulations_to_run$beta_community[i],
+      endemic_or_epidemic = "epidemic",
+      simulation_time = simulation_timesteps
+    )
+  )
 
   # If coverage and efficacy are greater than 0, append the far UVC parameters:
-  if(simulations_to_run$coverage[i] > 0 | simulations_to_run$efficacy[i] > 0) {
+  if (simulations_to_run$coverage[i] > 0 | simulations_to_run$efficacy[i] > 0) {
     temp_parameter_list |>
-      set_uvc(setting = "school",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) |>
-      set_uvc(setting = "workplace",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) |>
-      set_uvc(setting = "leisure",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) -> temp_parameter_list
+      set_uvc(
+        setting = "school",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) |>
+      set_uvc(
+        setting = "workplace",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) |>
+      set_uvc(
+        setting = "leisure",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) -> temp_parameter_list
   }
 
   # Running the model
@@ -203,25 +234,42 @@ results <- parLapply(cl, 1:nrow(simulations_to_run), function(i) {
 })
 parallel::stopCluster(cl)
 
-saveRDS(results,
-        file = "inst/partner_meeting_1/parameter_sweep_results.rds")
+saveRDS(results, file = "inst/partner_meeting_1/parameter_sweep_results.rds")
 
 #----- 4) Simulation Post-Processing ---------------------------------------------------------------
 
 # Combine the simulation outputs into a combined data frame:
-combined_parameter_sweep_outputs <-  data.frame(matrix(NA, nrow = length(results), ncol = 8))
-colnames(combined_parameter_sweep_outputs) <- c("ID", "R0", "coverage", "efficacy", "coverage_type", "beta_community", "iteration", "final_size")
+combined_parameter_sweep_outputs <- data.frame(matrix(
+  NA,
+  nrow = length(results),
+  ncol = 8
+))
+colnames(combined_parameter_sweep_outputs) <- c(
+  "ID",
+  "R0",
+  "coverage",
+  "efficacy",
+  "coverage_type",
+  "beta_community",
+  "iteration",
+  "final_size"
+)
 
-for(i in 1:length(results)) {
+for (i in 1:length(results)) {
   temp <- results[[i]]
   combined_parameter_sweep_outputs$ID[i] <- unique(temp$ID)
   combined_parameter_sweep_outputs$R0[i] <- unique(temp$r0)
   combined_parameter_sweep_outputs$coverage[i] <- unique(temp$coverage)
   combined_parameter_sweep_outputs$efficacy[i] <- unique(temp$efficacy)
-  combined_parameter_sweep_outputs$coverage_type[i] <- unique(temp$coverage_type)
-  combined_parameter_sweep_outputs$beta_community[i] <- unique(temp$beta_community)
+  combined_parameter_sweep_outputs$coverage_type[i] <- unique(
+    temp$coverage_type
+  )
+  combined_parameter_sweep_outputs$beta_community[i] <- unique(
+    temp$beta_community
+  )
   combined_parameter_sweep_outputs$iteration[i] <- unique(temp$iteration)
-  combined_parameter_sweep_outputs$final_size[i] <- max(temp$R_count) / human_population
+  combined_parameter_sweep_outputs$final_size[i] <- max(temp$R_count) /
+    human_population
 }
 
 #----- 5) Visualisation ----------------------------------------------------------------------------
@@ -233,15 +281,18 @@ overall_df <- combined_parameter_sweep_outputs %>%
   mutate(Coverage_Strategy = ifelse(coverage_type == 1, "Random", "Targeted"))
 
 # Save the plotting data frame:
-saveRDS(overall_df,
-        file = "inst/partner_meeting_1/parameter_sweep_summarised_results.rds")
+saveRDS(
+  overall_df,
+  file = "inst/partner_meeting_1/parameter_sweep_summarised_results.rds"
+)
 
 # Save the parameter sweep data frame:
-saveRDS(overall_df,
-        file = "./vignettes/parameter_sweep_data.rds")
+saveRDS(overall_df, file = "./vignettes/parameter_sweep_data.rds")
 
 # read in the overall_df
-overall_df <- readRDS("./inst/partner_meeting_1/parameter_sweep_summarised_results.rds")
+overall_df <- readRDS(
+  "./inst/partner_meeting_1/parameter_sweep_summarised_results.rds"
+)
 
 #+++ 1) Plotting R0 against farUVC coverage +++#
 #++++++++++++++++++++++++++++++++++++++++++++++#
@@ -251,39 +302,56 @@ R0_coverage_df <- overall_df %>%
   filter(efficacy == 0.8, coverage <= 0.8)
 
 # Generate the heatmap of final size for R0 and coverage:
-R0_coverage_heatmap <- ggplot(R0_coverage_df, aes(y = factor(R0), x = 100 * coverage, fill = 100 * final_size)) +
+R0_coverage_heatmap <- ggplot(
+  R0_coverage_df,
+  aes(y = factor(R0), x = 100 * coverage, fill = 100 * final_size)
+) +
   geom_tile(colour = "black") +
-  scale_fill_viridis_c(option = "rocket", limits = c(0, 100), begin = 0, end = 1, name = "Proportion\nContained",
-                       direction = -1) +
-  scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100),
-                     labels = c(0, 20, 40, 60, 80, 100)) +
-  facet_grid(.~Coverage_Strategy) +
-  labs(y = "R0",
-       x = "farUVC Coverage (%)") +
-  theme(axis.text = element_text(angle = 0),
-        plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12),
-        legend.position = "right",
-        strip.background = element_rect(fill="white", colour = "black"),
-        panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 0.5)) +  # Add black border
+  scale_fill_viridis_c(
+    option = "rocket",
+    limits = c(0, 100),
+    begin = 0,
+    end = 1,
+    name = "Proportion\nContained",
+    direction = -1
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 20, 40, 60, 80, 100),
+    labels = c(0, 20, 40, 60, 80, 100)
+  ) +
+  facet_grid(. ~ Coverage_Strategy) +
+  labs(y = "R0", x = "farUVC Coverage (%)") +
+  theme(
+    axis.text = element_text(angle = 0),
+    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    legend.position = "right",
+    strip.background = element_rect(fill = "white", colour = "black"),
+    panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 0.5)
+  ) + # Add black border
   coord_cartesian(expand = FALSE)
 
 # Create the line plot of final size given R0 and efficacy:
-R0_coverage_line <- ggplot(R0_coverage_df, aes(x = 100 * coverage, y = 100 * final_size, col = factor(R0))) +
+R0_coverage_line <- ggplot(
+  R0_coverage_df,
+  aes(x = 100 * coverage, y = 100 * final_size, col = factor(R0))
+) +
   geom_line() +
-  facet_grid(.~Coverage_Strategy) +
+  facet_grid(. ~ Coverage_Strategy) +
   theme_bw() +
-  theme(strip.background = element_rect(fill="white", colour = "black")) +
+  theme(strip.background = element_rect(fill = "white", colour = "black")) +
   labs(x = "Coverage %", y = "Epidemic Final Size", colour = "R0")
 
 # Combine the coverage heat map and line graph:
-R0_coverage_full_plot <- cowplot::plot_grid(R0_coverage_line,
-                                            R0_coverage_heatmap,
-                                            nrow = 2,
-                                            align = "hv",
-                                            axis = "lr",
-                                            rel_heights = c(1, 2))
+R0_coverage_full_plot <- cowplot::plot_grid(
+  R0_coverage_line,
+  R0_coverage_heatmap,
+  nrow = 2,
+  align = "hv",
+  axis = "lr",
+  rel_heights = c(1, 2)
+)
 
 #+++ 2) Plotting R0 against farUVC efficacy +++#
 #++++++++++++++++++++++++++++++++++++++++++++++#
@@ -293,39 +361,56 @@ R0_efficacy_df <- overall_df %>%
   filter(coverage > 0.7 & coverage < 1)
 
 # Plot the heatmap for final size given R0 and efficacy:
-R0_efficacy_heatmap <- ggplot(R0_efficacy_df, aes(y = factor(R0), x = 100 * efficacy, fill = 100 * final_size)) +
+R0_efficacy_heatmap <- ggplot(
+  R0_efficacy_df,
+  aes(y = factor(R0), x = 100 * efficacy, fill = 100 * final_size)
+) +
   geom_tile(colour = "black") +
-  scale_fill_viridis_c(option = "mako", limits = c(0, 100), begin = 0, end = 1, name = "Proportion\nContained",
-                       direction = -1) +
-  scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100),
-                     labels = c(0, 20, 40, 60, 80, 100)) +
-  facet_grid(.~Coverage_Strategy) +
-  labs(y = "R0",
-       x = "farUVC Efficacy (%)") +
-  theme(axis.text = element_text(angle = 0),
-        plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12),
-        legend.position = "right",
-        strip.background = element_rect(fill="white", colour = "black"),
-        panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 0.5)) +  # Add black border
+  scale_fill_viridis_c(
+    option = "mako",
+    limits = c(0, 100),
+    begin = 0,
+    end = 1,
+    name = "Proportion\nContained",
+    direction = -1
+  ) +
+  scale_x_continuous(
+    breaks = c(0, 20, 40, 60, 80, 100),
+    labels = c(0, 20, 40, 60, 80, 100)
+  ) +
+  facet_grid(. ~ Coverage_Strategy) +
+  labs(y = "R0", x = "farUVC Efficacy (%)") +
+  theme(
+    axis.text = element_text(angle = 0),
+    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    legend.position = "right",
+    strip.background = element_rect(fill = "white", colour = "black"),
+    panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 0.5)
+  ) + # Add black border
   coord_cartesian(expand = FALSE)
 
 # Plot the line graph of final size for Efficacy anf R0s:
-R0_efficacy_line <- ggplot(R0_efficacy_df, aes(x = 100 * efficacy, y = 100 * final_size, col = factor(R0))) +
+R0_efficacy_line <- ggplot(
+  R0_efficacy_df,
+  aes(x = 100 * efficacy, y = 100 * final_size, col = factor(R0))
+) +
   geom_line() +
-  facet_grid(.~Coverage_Strategy) +
+  facet_grid(. ~ Coverage_Strategy) +
   theme_bw() +
-  theme(strip.background = element_rect(fill="white", colour = "black")) +
+  theme(strip.background = element_rect(fill = "white", colour = "black")) +
   labs(x = "Efficacy %", y = "Epidemic Final Size", colour = "R0")
 
 # Combine the efficacy heat map and line graph:
-R0_efficacy_full_plot <- cowplot::plot_grid(R0_efficacy_line,
-                                            R0_efficacy_heatmap,
-                                            nrow = 2,
-                                            align = "hv",
-                                            axis = "lr",
-                                            rel_heights = c(1, 2))
+R0_efficacy_full_plot <- cowplot::plot_grid(
+  R0_efficacy_line,
+  R0_efficacy_heatmap,
+  nrow = 2,
+  align = "hv",
+  axis = "lr",
+  rel_heights = c(1, 2)
+)
 
 #+++ 3) Plotting farUVC coverage against efficacy +++#
 #++++++++++++++++++++++++++++++++++++++++++++++++++++#
@@ -335,21 +420,29 @@ coverage_efficacy_df <- overall_df %>%
   filter(R0 == 2)
 
 # Plot the heatmap of final epidemic size for the coverage and efficacy sweep:
-coverage_efficacy_heatmap <- ggplot(coverage_efficacy_df, aes(y = 100 * coverage, x = 100 * efficacy, fill = 100 * final_size)) +
+coverage_efficacy_heatmap <- ggplot(
+  coverage_efficacy_df,
+  aes(y = 100 * coverage, x = 100 * efficacy, fill = 100 * final_size)
+) +
   geom_tile(colour = "black") +
   scico::scale_fill_scico(palette = "bamako", limits = c(0, 81)) +
-  scale_x_continuous(breaks = c(0, 20, 40, 60, 80, 100),
-                     labels = c(0, 20, 40, 60, 80, 100)) +
-  scale_y_continuous(breaks = c(0, 20, 40, 60, 80, 100),
-                     labels = c(0, 20, 40, 60, 80, 100)) +
-  facet_grid(.~Coverage_Strategy) +
-  labs(y = "R0",
-       x = "farUVC Efficacy (%)") +
-  theme(axis.text = element_text(angle = 0),
-        plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
-        legend.title = element_text(size = 12),
-        legend.text = element_text(size = 12),
-        legend.position = "right",
-        strip.background = element_rect(fill="white", colour = "black"),
-        panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 0.5)) +  # Add black border
+  scale_x_continuous(
+    breaks = c(0, 20, 40, 60, 80, 100),
+    labels = c(0, 20, 40, 60, 80, 100)
+  ) +
+  scale_y_continuous(
+    breaks = c(0, 20, 40, 60, 80, 100),
+    labels = c(0, 20, 40, 60, 80, 100)
+  ) +
+  facet_grid(. ~ Coverage_Strategy) +
+  labs(y = "R0", x = "farUVC Efficacy (%)") +
+  theme(
+    axis.text = element_text(angle = 0),
+    plot.title = element_text(hjust = 0.5, size = 20, face = "bold"),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 12),
+    legend.position = "right",
+    strip.background = element_rect(fill = "white", colour = "black"),
+    panel.border = element_rect(linetype = "solid", fill = NA, linewidth = 0.5)
+  ) + # Add black border
   coord_cartesian(expand = FALSE)

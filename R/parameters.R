@@ -116,7 +116,6 @@
 #' @family parameters
 #' @export
 get_parameters <- function(overrides = list(), archetype = "none") {
-
   # Open a list of parameters to store
   parameters <- list(
     human_population = 10000,
@@ -232,7 +231,6 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     size_per_individual_school = 1,
     size_per_individual_leisure = 1,
     size_per_individual_household = 1
-
   )
 
   # Ensure overridden parameters are passed as a list
@@ -243,19 +241,25 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   # Override parameter values in the overrides input
   for (name in names(overrides)) {
     if (!(name %in% names(parameters))) {
-      stop(paste('unknown parameter', name, sep=' '))
+      stop(paste('unknown parameter', name, sep = ' '))
     }
     parameters[[name]] <- overrides[[name]]
   }
 
   # Ensure size_per_individual parameters are greater than or equal to 1
-  if (parameters$size_per_individual_workplace < 1 | parameters$size_per_individual_school < 1 |
-      parameters$size_per_individual_leisure < 1 | parameters$size_per_individual_household < 1) {
-    stop("all size_per_individual parameters must be equal to or greater than 1")
+  if (
+    parameters$size_per_individual_workplace < 1 |
+      parameters$size_per_individual_school < 1 |
+      parameters$size_per_individual_leisure < 1 |
+      parameters$size_per_individual_household < 1
+  ) {
+    stop(
+      "all size_per_individual parameters must be equal to or greater than 1"
+    )
   }
 
   # Ensure archetype input from recognised options:
-  if(!(archetype %in% c("none", "flu", "measles", "sars_cov_2"))) {
+  if (!(archetype %in% c("none", "flu", "measles", "sars_cov_2"))) {
     stop('archetype not recognised')
   }
 
@@ -263,40 +267,65 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   if (parameters$dt > 1 | parameters$dt == 0) {
     stop("dt must be less than 1 and greater than 0")
   }
-  if ((1/parameters$dt) != floor(1/parameters$dt)) {
+  if ((1 / parameters$dt) != floor(1 / parameters$dt)) {
     stop("dt must evenly divide into 1 e.g. 0.1, 0.2, 0.25, 0.5")
   }
 
   ## put warning or check in here about if coverage_type = "targeted_riskiness" but riskiness
   ## isn't turned on.
   if (parameters$far_uvc_joint) {
-    if (parameters$far_uvc_joint_coverage_target == "targeted_riskiness" &
-      !any(parameters$setting_specific_riskiness_workplace | parameters$setting_specific_riskiness_school | parameters$setting_specific_riskiness_leisure | parameters$setting_specific_riskiness_household)) {
-      warning("coverage_target is set to targeted_riskiness but at least one of the setting_specific_riskinesses is not turned on")
+    if (
+      parameters$far_uvc_joint_coverage_target == "targeted_riskiness" &
+        !any(
+          parameters$setting_specific_riskiness_workplace |
+            parameters$setting_specific_riskiness_school |
+            parameters$setting_specific_riskiness_leisure |
+            parameters$setting_specific_riskiness_household
+        )
+    ) {
+      warning(
+        "coverage_target is set to targeted_riskiness but at least one of the setting_specific_riskinesses is not turned on"
+      )
     }
   }
   if (parameters$far_uvc_household) {
-    if (parameters$far_uvc_household_coverage_target == "targeted_riskiness" &
-      !parameters$setting_specific_riskiness_household) {
-      warning("far_uvc_household_coverage_target is set to targeted_riskiness but setting_specific_riskiness_household is not turned on")
+    if (
+      parameters$far_uvc_household_coverage_target == "targeted_riskiness" &
+        !parameters$setting_specific_riskiness_household
+    ) {
+      warning(
+        "far_uvc_household_coverage_target is set to targeted_riskiness but setting_specific_riskiness_household is not turned on"
+      )
     }
   }
   if (parameters$far_uvc_workplace) {
-    if (parameters$far_uvc_workplace_coverage_target == "targeted_riskiness" &
-      !parameters$setting_specific_riskiness_workplace) {
-      warning("far_uvc_workplace_coverage_target is set to targeted_riskiness but setting_specific_riskiness_workplace is not turned on")
+    if (
+      parameters$far_uvc_workplace_coverage_target == "targeted_riskiness" &
+        !parameters$setting_specific_riskiness_workplace
+    ) {
+      warning(
+        "far_uvc_workplace_coverage_target is set to targeted_riskiness but setting_specific_riskiness_workplace is not turned on"
+      )
     }
   }
   if (parameters$far_uvc_school) {
-    if(parameters$far_uvc_school_coverage_target == "targeted_riskiness" &
-      !parameters$setting_specific_riskiness_school) {
-      warning("far_uvc_school_coverage_target is set to targeted_riskiness but setting_specific_riskiness_school is not turned on")
+    if (
+      parameters$far_uvc_school_coverage_target == "targeted_riskiness" &
+        !parameters$setting_specific_riskiness_school
+    ) {
+      warning(
+        "far_uvc_school_coverage_target is set to targeted_riskiness but setting_specific_riskiness_school is not turned on"
+      )
     }
   }
   if (parameters$far_uvc_leisure) {
-    if(parameters$far_uvc_leisure_coverage_target == "targeted_riskiness" &
-      !parameters$setting_specific_riskiness_leisure) {
-      warning("far_uvc_leisure_coverage_target is set to targeted_riskiness but setting_specific_riskiness_leisure is not turned on")
+    if (
+      parameters$far_uvc_leisure_coverage_target == "targeted_riskiness" &
+        !parameters$setting_specific_riskiness_leisure
+    ) {
+      warning(
+        "far_uvc_leisure_coverage_target is set to targeted_riskiness but setting_specific_riskiness_leisure is not turned on"
+      )
     }
   }
 
@@ -304,19 +333,37 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   if (!(parameters$endemic_or_epidemic %in% c("endemic", "epidemic"))) {
     stop("endemic_or_epidemic must be set to either epidemic or endemic")
   }
-  if (parameters$endemic_or_epidemic == "endemic" & is.null(parameters$duration_immune)) {
-    stop("duration_immune must be specified if endemic_or_epidemic is set to endemic")
+  if (
+    parameters$endemic_or_epidemic == "endemic" &
+      is.null(parameters$duration_immune)
+  ) {
+    stop(
+      "duration_immune must be specified if endemic_or_epidemic is set to endemic"
+    )
   }
-  if (parameters$endemic_or_epidemic == "endemic" & is.null(parameters$prob_inf_external)) {
-    stop("prob_inf_external must be specified if endemic_or_epidemic is set to endemic")
+  if (
+    parameters$endemic_or_epidemic == "endemic" &
+      is.null(parameters$prob_inf_external)
+  ) {
+    stop(
+      "prob_inf_external must be specified if endemic_or_epidemic is set to endemic"
+    )
   }
 
   # Checking distribution country is either UK, USA or custom
-  if (!(parameters$household_distribution_country %in% c("UK", "USA", "custom"))) {
-    stop("household_distribution_country must be set to either UK, USA or custom")
+  if (
+    !(parameters$household_distribution_country %in% c("UK", "USA", "custom"))
+  ) {
+    stop(
+      "household_distribution_country must be set to either UK, USA or custom"
+    )
   }
-  if (!(parameters$workplace_distribution_country %in% c("UK", "USA", "custom"))) {
-    stop("workplace_distribution_country must be set to either UK, USA or custom")
+  if (
+    !(parameters$workplace_distribution_country %in% c("UK", "USA", "custom"))
+  ) {
+    stop(
+      "workplace_distribution_country must be set to either UK, USA or custom"
+    )
   }
   if (!(parameters$school_distribution_country %in% c("UK", "USA", "custom"))) {
     stop("school_distribution_country must be set to either UK, USA or custom")
@@ -324,7 +371,7 @@ get_parameters <- function(overrides = list(), archetype = "none") {
 
   # Overwrite parameters if archetype specified:
   # Flu (R0 ~ 1.5)
-  if(archetype == "flu") {
+  if (archetype == "flu") {
     parameters$duration_exposed = 1
     parameters$duration_infectious = 2
     parameters$beta_household = 0.207
@@ -335,7 +382,7 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   }
 
   # SARS-CoV-2 (R0 ~ 2.5)
-  if(archetype == "sars_cov_2") {
+  if (archetype == "sars_cov_2") {
     parameters$duration_exposed = 2
     parameters$duration_infectious = 4
     parameters$beta_household = 0.24
@@ -346,7 +393,7 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   }
 
   # Measles (R0 ~ 9)
-  if(archetype == "measles") {
+  if (archetype == "measles") {
     parameters$duration_exposed = 8
     parameters$duration_infectious = 5
     parameters$beta_household = 1.26
@@ -357,24 +404,33 @@ get_parameters <- function(overrides = list(), archetype = "none") {
   }
 
   # Check that all setting-specific betas are of length 1:
-  if(any(length(parameters$beta_household) != 1,
-         length(parameters$beta_school) != 1,
-         length(parameters$beta_workplace) != 1,
-         length(parameters$beta_leisure) != 1,
-         length(parameters$beta_community) != 1)) {
-    stop("ERROR: A setting-specific beta has length not equal to 1. All setting-specific betas must be of length 1")
+  if (
+    any(
+      length(parameters$beta_household) != 1,
+      length(parameters$beta_school) != 1,
+      length(parameters$beta_workplace) != 1,
+      length(parameters$beta_leisure) != 1,
+      length(parameters$beta_community) != 1
+    )
+  ) {
+    stop(
+      "ERROR: A setting-specific beta has length not equal to 1. All setting-specific betas must be of length 1"
+    )
   }
 
   # Check that initial numbers in each state sum to the human population size
-  number_initial <- parameters$number_initial_S + parameters$number_initial_E + parameters$number_initial_I + parameters$number_initial_R
+  number_initial <- parameters$number_initial_S +
+    parameters$number_initial_E +
+    parameters$number_initial_I +
+    parameters$number_initial_R
   if (number_initial != parameters$human_population) {
-    stop("total of number_initial_S, number_initial_E, number_initial_I and number_initial_R should sum to human_population")
+    stop(
+      "total of number_initial_S, number_initial_E, number_initial_I and number_initial_R should sum to human_population"
+    )
   }
 
   ## ADD MORE CHECKS IN HERE FOR PARAMETERS ##
 
   # Return the list of parameters
   parameters
-
 }
-

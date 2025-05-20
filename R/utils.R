@@ -61,8 +61,13 @@ get_setting_size <- function(variables_list, setting) {
 #' @param leisure_ratio The leisure beta as a ratio to the community beta
 #' @family miscellaneous
 #' @export
-generate_betas <- function(beta_community, household_ratio, school_ratio, workplace_ratio, leisure_ratio) {
-
+generate_betas <- function(
+  beta_community,
+  household_ratio,
+  school_ratio,
+  workplace_ratio,
+  leisure_ratio
+) {
   # Use the community betas to generate the household, school, workplace, and leisure betas:
   beta_household <- household_ratio * beta_community
   beta_school <- school_ratio * beta_community
@@ -75,16 +80,25 @@ generate_betas <- function(beta_community, household_ratio, school_ratio, workpl
     beta_school = beta_school,
     beta_workplace = beta_workplace,
     beta_leisure = beta_leisure,
-    beta_community = beta_community)
+    beta_community = beta_community
+  )
 
   # Append columns giving the proportion of the total beta accounted for in each setting:
   betas <- betas %>%
-    mutate(beta_total = beta_household + beta_school + beta_workplace + beta_leisure + beta_community) %>%
-    mutate(prop_household = beta_household / beta_total,
-           prop_school = beta_school / beta_total,
-           prop_workplace = beta_workplace / beta_total,
-           prop_leisure = beta_leisure / beta_total,
-           prop_community = beta_community / beta_total)
+    mutate(
+      beta_total = beta_household +
+        beta_school +
+        beta_workplace +
+        beta_leisure +
+        beta_community
+    ) %>%
+    mutate(
+      prop_household = beta_household / beta_total,
+      prop_school = beta_school / beta_total,
+      prop_workplace = beta_workplace / beta_total,
+      prop_leisure = beta_leisure / beta_total,
+      prop_community = beta_community / beta_total
+    )
 
   # Return the data frame of betas:
   return(betas)

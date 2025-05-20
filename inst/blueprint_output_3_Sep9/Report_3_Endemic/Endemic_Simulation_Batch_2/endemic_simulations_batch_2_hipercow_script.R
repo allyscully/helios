@@ -36,16 +36,20 @@ hipercow::hipercow_provision()
 hipercow::hipercow_configuration()
 
 # Create the environment for hipercow
-hipercow::hipercow_environment_create(packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats"))
+hipercow::hipercow_environment_create(
+  packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats")
+)
 
 # Store the job IDs:
-job_ids <- c(sim_out_batch_1,
-             sim_out_batch_2,
-             sim_out_batch_3,
-             sim_out_batch_4,
-             sim_out_batch_5,
-             sim_out_batch_6,
-             sim_out_batch_7)
+job_ids <- c(
+  sim_out_batch_1,
+  sim_out_batch_2,
+  sim_out_batch_3,
+  sim_out_batch_4,
+  sim_out_batch_5,
+  sim_out_batch_6,
+  sim_out_batch_7
+)
 #saveRDS(object = job_ids, file = "./Report_3_Endemic/first_batch_job_ids.rds")
 
 # Load the job IDs:
@@ -64,10 +68,8 @@ task_status(sim_out_batch_7)
 
 # Create the task (2 simulations of the basic run_simulation() function:
 sim_out_batch_1 <- hipercow::task_create_explicit(
-
   # Everything in the expr will be run on the cluster:
   expr = quote({
-
     # Load in the parameter lists:
     parameters <- readRDS("./Report_3_Endemic/endemic_parameter_list_1.rds")
 
@@ -82,8 +84,10 @@ sim_out_batch_1 <- hipercow::task_create_explicit(
     )
 
     # Store the simulation outputs:
-    saveRDS(object = scenario_output_batch_1, file = "./Report_3_Endemic/scenario_output_batch_1.rds")
-
+    saveRDS(
+      object = scenario_output_batch_1,
+      file = "./Report_3_Endemic/scenario_output_batch_1.rds"
+    )
   }),
 
   # Specify the cluster resources etc.
@@ -94,4 +98,3 @@ sim_out_batch_1 <- hipercow::task_create_explicit(
 # Check the task progress:
 task_status(sim_out_batch_1)
 #task_result(sim_out_batch_1)
-

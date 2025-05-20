@@ -1,8 +1,14 @@
 ## Installing hipercow
-install.packages("hipercow", repos = c("https://mrc-ide.r-universe.dev", "https://cloud.r-project.org"))
+install.packages(
+  "hipercow",
+  repos = c("https://mrc-ide.r-universe.dev", "https://cloud.r-project.org")
+)
 
 ## Loading hipercow
-library(hipercow); library(pkgdepends); library(helios); library(individual)
+library(hipercow)
+library(pkgdepends)
+library(helios)
+library(individual)
 
 ## Set working directory to network path
 setwd("Q:/")
@@ -37,11 +43,17 @@ hipercow_provision_check()
 
 ## Testing helios running locally
 parameters_list <- helios::get_parameters()
-test_run_local <- helios::run_simulation(parameters_list = parameters_list, timesteps = 50)
+test_run_local <- helios::run_simulation(
+  parameters_list = parameters_list,
+  timesteps = 50
+)
 
 ## Testing helios running on cluster
 hipercow_environment_create(packages = c("helios", "individual"))
-id <- task_create_expr(helios::run_simulation(parameters_list = parameters_list, timesteps = 50))
+id <- task_create_expr(helios::run_simulation(
+  parameters_list = parameters_list,
+  timesteps = 50
+))
 task_status(id)
 task_result(id)
 task_info(id)
@@ -61,7 +73,8 @@ id <- task_create_expr(
   }),
   environment = "default",
   parallel = hipercow_parallel("parallel"),
-  resources = hipercow_resources(cores = 5))
+  resources = hipercow_resources(cores = 5)
+)
 task_log_watch(id)
 
 ## Using task_create_explicit instead to try and export list_params
@@ -72,7 +85,8 @@ id2 <- task_create_explicit(
   export = "list_params",
   envir = parent.frame(),
   parallel = hipercow_parallel("parallel"),
-  resources = hipercow_resources(cores = 5))
+  resources = hipercow_resources(cores = 5)
+)
 task_log_watch(id2)
 
 ## Create and submit task using parLapply
@@ -82,5 +96,6 @@ id3 <- task_create_expr(
   }),
   environment = "default",
   parallel = hipercow_parallel(method = "parallel", environment = "default"),
-  resources =  hipercow_resources(cores = 5))
+  resources = hipercow_resources(cores = 5)
+)
 task_log_watch(id3)
