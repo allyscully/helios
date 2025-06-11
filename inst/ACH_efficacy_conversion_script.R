@@ -131,11 +131,13 @@ b <- ggplot(subset(melted_df2, infection_prevalence == "0.01% Prev." & m2_per_pe
              scales = "free_y") +
   theme_bw() +
   labs(x = "ACH", y = "Prob. Infected (Wells Riley)",
-       col = "Time Spent In Room")
+       col = "Time Spent In Room") +
+  theme(legend.position = "none")
 
 melted_df3 <- melted_df2 %>%
   group_by(infection_prevalence, m2_per_person, time) %>%
-  mutate(efficacy = 1 - (value / value[airchanges_per_hour == 1]))
+  mutate(efficacy = 1 - (value / value[airchanges_per_hour == 1])) %>%
+  mutate(efficacy2 = 1 - (value / value[airchanges_per_hour == 2]))
 
 c <- ggplot(subset(melted_df3, infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person"),
        aes(x = as.numeric(airchanges_per_hour),
@@ -143,13 +145,58 @@ c <- ggplot(subset(melted_df3, infection_prevalence == "0.01% Prev." & m2_per_pe
            col = factor(time))) +
   geom_line() +
   geom_point() +
+  geom_line(aes(x = as.numeric(airchanges_per_hour),
+                y = 0.3787860 + efficacy2),
+                col = "blue")
   facet_grid(infection_prevalence~m2_per_person,
              scales = "free_y") +
   theme_bw() +
   labs(x = "ACH", y = "Efficacy",
-       col = "Time Spent In Room")
+       col = "Time Spent In Room") +
+  theme(legend.position = "none")
 
-cowplot::plot_grid(a, b, c, nrow = 1)
+cowplot::plot_grid(b, c, nrow = 1)
+
+starters  <- 1:10
+step_max  <- 15
+pair_grid <- expand_grid(ach_start  = starters,
+                         step       = 1:step_max) %>%
+  mutate(ach_target = ach_start + step) %>%
+  select(-step)
+
+efficacy_df <- melted_df2 %>%
+  filter(infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person") %>%
+  rename(ach_target = airchanges_per_hour) %>%
+  right_join(pair_grid, by = "ach_target") %>%
+  left_join(
+    melted_df2 %>%
+      rename(ach_start = airchanges_per_hour,
+             value_start = value),
+    by = c("infection_prevalence",
+           "m2_per_person",
+           "time",
+           "ach_start")
+  ) %>%
+
+  mutate(
+    efficacy = 1 - value / value_start   # the definition you gave
+  ) %>%
+  arrange(infection_prevalence, m2_per_person, time,
+          ach_start, ach_target) %>%
+  filter(time == 8) %>%
+  mutate(ach_increase = ach_target - ach_start)
+
+ggplot(subset(efficacy_df, infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person"),
+       aes(x = as.numeric(ach_increase),
+           y = efficacy,
+           col = factor(ach_start))) +
+  geom_line() +
+  geom_point() +
+  theme_bw() +
+  labs(x = "ACH Increase", y = "Efficacy",
+       col = "Baseline ACH") +
+  lims(y = c(0, 1),
+       x = c(0, 15))
 
 # ventilation rate * setting size * infection prevalence * time spent
 output_matrix <- array(dim = c(,
