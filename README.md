@@ -28,6 +28,13 @@ You can install the development version of `helios` from GitHub using:
 devtools::install_github("mrc-ide/helios")
 ```
 
+Currently, we depend on a particular branch of the `individual` package,
+which you can install using:
+
+``` r
+devtools::install_github("mrc-ide/individual@feat/logi_size")
+```
+
 ## Vignettes
 
 - [Get started](https://mrc-ide.github.io/helios/articles/helios.html)
@@ -47,4 +54,7 @@ devtools::install_github("mrc-ide/helios")
 - **July 2024**: [Update to “assessing far UVC interventions with an
   individual based infectious disease
   model”](https://mrc-ide.github.io/helios/articles/blueprint-july.html)
-  describes two updates to our initial model, and…
+  describes two updates to our initial model
+- **September 2025**: [The Impact of Far UVC Interventions on the Burden
+  of a Respiratory
+  Virus](https://mrc-ide.github.io/helios/articles/blueprint-final-report.html)
