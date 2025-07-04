@@ -1,27 +1,6 @@
 # Loading required libraries
 library(EnvStats); library(reshape2); library(tidyverse)
 
-### They then define
-# "r" for FFU is 1.26*10-2 i.e. probability that a single FFU will cause infection
-# so then question becomes what the steady state of FFUs are - quotes FFU per hour (i.e. pi) of 29
-I <- 1               ## number of infectious people in room
-pi <- 27             ## per capita virus emission rate
-room_vol <- 500
-A <- 0.3             ## air changes per hour
-kD <- 0.64           ## natural decay constant
-alpha <- A + kD
-Css <- (I * pi) / (alpha * room_vol)
-Css
-
-## Wells-Riley
-time <- seq(0, 8, 0.1)
-r <- 1.37e-2
-RRtv <- 0.45
-p_inf <- 1 - exp(-r * Css * RRtv * time)
-plot(time, log10(p_inf), ylim = c(-5, 0))
-plot(time, p_inf, ylim = c(0, 0.01))
-
-
 ### Sensitivity Analysis examining how variation in air-changes per hour
 ### influences riskiness of a room. We vary:
 ### - infection prevalence:  0.1%, 0.5%, 1% and 2.5% infection prevalence
@@ -147,7 +126,7 @@ c <- ggplot(subset(melted_df3, infection_prevalence == "0.01% Prev." & m2_per_pe
   geom_point() +
   geom_line(aes(x = as.numeric(airchanges_per_hour),
                 y = 0.3787860 + efficacy2),
-                col = "blue")
+                col = "blue") +
   facet_grid(infection_prevalence~m2_per_person,
              scales = "free_y") +
   theme_bw() +
@@ -165,7 +144,7 @@ pair_grid <- expand_grid(ach_start  = starters,
   select(-step)
 
 efficacy_df <- melted_df2 %>%
-  filter(infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person") %>%
+  # filter(infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person") %>%
   rename(ach_target = airchanges_per_hour) %>%
   right_join(pair_grid, by = "ach_target") %>%
   left_join(
@@ -177,7 +156,7 @@ efficacy_df <- melted_df2 %>%
            "time",
            "ach_start")
   ) %>%
-
+  group_by(infection_prevalence, m2_per_person) %>%
   mutate(
     efficacy = 1 - value / value_start   # the definition you gave
   ) %>%
@@ -186,10 +165,13 @@ efficacy_df <- melted_df2 %>%
   filter(time == 8) %>%
   mutate(ach_increase = ach_target - ach_start)
 
-ggplot(subset(efficacy_df, infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person"),
+# ggplot(subset(efficacy_df, infection_prevalence == "0.01% Prev." & m2_per_person == "2m^2 per person"),
+ggplot(efficacy_df,
        aes(x = as.numeric(ach_increase),
            y = efficacy,
            col = factor(ach_start))) +
+  facet_grid(infection_prevalence~m2_per_person,
+             scales = "free_y") +
   geom_line() +
   geom_point() +
   theme_bw() +
@@ -198,18 +180,30 @@ ggplot(subset(efficacy_df, infection_prevalence == "0.01% Prev." & m2_per_person
   lims(y = c(0, 1),
        x = c(0, 15))
 
-# ventilation rate * setting size * infection prevalence * time spent
-output_matrix <- array(dim = c(,
-                               length(infection_prevalence),
-                               length(m2_per_person),
-                               4))
+ggplot(efficacy_df,
+       aes(x = as.numeric(ach_increase),
+           y = efficacy,
+           col = infection_prevalence)) +
+  facet_grid(factor(ach_start)~m2_per_person,
+             scales = "free_y") +
+  geom_line() +
+  geom_point() +
+  theme_bw() +
+  labs(x = "ACH Increase", y = "Efficacy",
+       col = "Baseline ACH") +
+  lims(y = c(0, 1),
+       x = c(0, 15))
 
-ratios <- apply(output_matrix[, , , 4], c(2, 3), function(x) {
-  ratio <- x[which(air_changes_per_hour == 1.0)] / x
-  return(ratio)
-})
-
-par(mfrow = c(1, 1))
-plot(air_changes_per_hour, ratios[, 1, 1], pch = 20,
-     ylab = "Riskiness Relative to 1 Air Change Per Hour",
-     xlab = "Air Changes Per Hour")
+ggplot(efficacy_df,
+       aes(x = as.numeric(ach_increase),
+           y = efficacy,
+           col = m2_per_person)) +
+  facet_grid(factor(ach_start)~infection_prevalence,
+             scales = "free_y") +
+  geom_line() +
+  geom_point() +
+  theme_bw() +
+  labs(x = "ACH Increase", y = "Efficacy",
+       col = "Baseline ACH") +
+  lims(y = c(0, 1),
+       x = c(0, 15))
