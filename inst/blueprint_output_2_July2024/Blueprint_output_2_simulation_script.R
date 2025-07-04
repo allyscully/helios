@@ -55,11 +55,13 @@ far_uvc_efficacy <- seq(0.2, 1, 0.2)
 iterations <- 1:5
 
 # Set up the unique simulations to run
-simulations_to_run <- expand.grid("riskiness" = riskiness,
-                                  "archetype" = archetypes,
-                                  "coverage" = far_uvc_coverage,
-                                  "efficacy" = far_uvc_efficacy,
-                                  "iteration" = iterations)
+simulations_to_run <- expand.grid(
+  "riskiness" = riskiness,
+  "archetype" = archetypes,
+  "coverage" = far_uvc_coverage,
+  "efficacy" = far_uvc_efficacy,
+  "iteration" = iterations
+)
 
 # Append a column for simulation ID:
 simulations_to_run$ID <- 1:nrow(simulations_to_run)
@@ -74,58 +76,72 @@ head(simulations_to_run)
 parameter_lists <- list()
 
 # Set up the simulation parameter lists for each row of the simulations_to_run dataframe:
-for(i in 1:nrow(simulations_to_run)) {
-
+for (i in 1:nrow(simulations_to_run)) {
   # Set up the parameters list:
-  parameter_lists[[i]] <- get_parameters(archetype = ,
-                                         overrides = list(
-                                           human_population = human_population,
-                                           endemic_or_epidemic = "endemic",
-                                           duration_immune = duration_of_immunity,
-                                           prob_inf_external = external_infection_probability,
-                                           simulation_time = simulation_timesteps))
+  parameter_lists[[i]] <- get_parameters(
+    archetype = ,
+    overrides = list(
+      human_population = human_population,
+      endemic_or_epidemic = "endemic",
+      duration_immune = duration_of_immunity,
+      prob_inf_external = external_infection_probability,
+      simulation_time = simulation_timesteps
+    )
+  )
 
   # If coverage is greater than 0 append the far UVC parameters:
-  if(simulations_to_run$coverage[i] > 0) {
+  if (simulations_to_run$coverage[i] > 0) {
     parameter_lists[[i]] |>
-      set_uvc(setting = "school",
-              coverage = simulations_to_run$coverage[i],
-              coverage_target = "buildings",
-              coverage_type = "random",
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) |>
-      set_uvc(setting = "workplace",
-              coverage = simulations_to_run$coverage[i],
-              coverage_target = "buildings",
-              coverage_type = "random",
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) |>
-      set_uvc(setting = "leisure",
-              coverage = simulations_to_run$coverage[i],
-              coverage_target = "buildings",
-              coverage_type = "random",
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) -> parameter_lists[[i]]
+      set_uvc(
+        setting = "school",
+        coverage = simulations_to_run$coverage[i],
+        coverage_target = "buildings",
+        coverage_type = "random",
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) |>
+      set_uvc(
+        setting = "workplace",
+        coverage = simulations_to_run$coverage[i],
+        coverage_target = "buildings",
+        coverage_type = "random",
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) |>
+      set_uvc(
+        setting = "leisure",
+        coverage = simulations_to_run$coverage[i],
+        coverage_target = "buildings",
+        coverage_type = "random",
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) -> parameter_lists[[i]]
   }
 
   # If setting-specific-riskiness is parameterised, append the setting-specific riskiness parameters:
-  if(simulations_to_run$riskiness[i] == "setting_specific_riskiness") {
+  if (simulations_to_run$riskiness[i] == "setting_specific_riskiness") {
     parameter_lists[[i]] |>
-      set_setting_specific_riskiness(setting = "school",
-                                     mean = 0,
-                                     sd = 0.37,
-                                     min = 0.4472,
-                                     max = 2.236) |>
-      set_setting_specific_riskiness(setting = "workplace",
-                                     mean = 0,
-                                     sd = 0.37,
-                                     min = 0.4472,
-                                     max = 2.236) |>
-      set_setting_specific_riskiness(setting = "leisure",
-                                     mean = 0,
-                                     sd = 0.37,
-                                     min = 0.4472,
-                                     max = 2.236) -> parameter_lists[[i]]
+      set_setting_specific_riskiness(
+        setting = "school",
+        mean = 0,
+        sd = 0.37,
+        min = 0.4472,
+        max = 2.236
+      ) |>
+      set_setting_specific_riskiness(
+        setting = "workplace",
+        mean = 0,
+        sd = 0.37,
+        min = 0.4472,
+        max = 2.236
+      ) |>
+      set_setting_specific_riskiness(
+        setting = "leisure",
+        mean = 0,
+        sd = 0.37,
+        min = 0.4472,
+        max = 2.236
+      ) -> parameter_lists[[i]]
   }
 }
 
@@ -135,15 +151,22 @@ for(i in 1:nrow(simulations_to_run)) {
 simulation_outputs <- list()
 
 # Run through the simulations in simulations_to_run:
-for(i in 1:length(parameter_lists)) {
-  simulation_outputs[[i]] <- run_simulation(parameters_list = parameter_lists[[i]])
+for (i in 1:length(parameter_lists)) {
+  simulation_outputs[[i]] <- run_simulation(
+    parameters_list = parameter_lists[[i]]
+  )
   simulation_outputs[[i]]$ID <- simulations_to_run$ID[i]
   simulation_outputs[[i]]$riskiness_setting <- simulations_to_run$riskiness[i]
   simulation_outputs[[i]]$archetype <- simulations_to_run$archetype[i]
   simulation_outputs[[i]]$coverage <- simulations_to_run$coverage[i]
   simulation_outputs[[i]]$efficacy <- simulations_to_run$efficacy[i]
   simulation_outputs[[i]]$iteration <- simulations_to_run$iteration[i]
-  print(paste0(i, "th simulation complete (", (i/length(parameter_lists))*100, "% complete)"))
+  print(paste0(
+    i,
+    "th simulation complete (",
+    (i / length(parameter_lists)) * 100,
+    "% complete)"
+  ))
 }
 
 # Save the simulation outputs:
@@ -153,20 +176,27 @@ for(i in 1:length(parameter_lists)) {
 
 # Combine the simulation outputs into a combined data frame:
 combined_parameter_sweep_outputs <- data.frame()
-for(i in 1:length(simulation_outputs)) {
-  combined_parameter_sweep_outputs <- dplyr::bind_rows(combined_parameter_sweep_outputs, simulation_outputs[[i]])
+for (i in 1:length(simulation_outputs)) {
+  combined_parameter_sweep_outputs <- dplyr::bind_rows(
+    combined_parameter_sweep_outputs,
+    simulation_outputs[[i]]
+  )
 }
 
 # Convert the dataframe to long form
 combined_parameter_sweep_outputs %>%
   mutate(total_count = S_count + E_count + I_count + R_count) %>%
-  mutate(S = S_count/total_count,
-         E = E_count/total_count,
-         I = I_count/total_count,
-         R = R_count/total_count) %>%
-  pivot_longer(cols = c(S, E, I, R),
-               names_to = "Disease_State",
-               values_to = "Proportion") -> combined_parameter_sweep_outputs_long
+  mutate(
+    S = S_count / total_count,
+    E = E_count / total_count,
+    I = I_count / total_count,
+    R = R_count / total_count
+  ) %>%
+  pivot_longer(
+    cols = c(S, E, I, R),
+    names_to = "Disease_State",
+    values_to = "Proportion"
+  ) -> combined_parameter_sweep_outputs_long
 
 # Save the long-form dataframe:
 #saveRDS(object = combined_parameter_sweep_outputs_long, file = "./inst/blueprint_output_2_July2024/example_longform_output.rds")

@@ -40,7 +40,9 @@ hipercow::hipercow_provision()
 hipercow::hipercow_configuration()
 
 # Create the environment for hipercow
-hipercow_environment_create(packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats"))
+hipercow_environment_create(
+  packages = c("individual", "helios", "tidyverse", "dqrng", "EnvStats")
+)
 
 # Load the job IDs:
 #job_ids <- readRDS("./Report_3_Endemic/first_batch_job_ids.rds")
@@ -51,41 +53,50 @@ hipercow_environment_create(packages = c("individual", "helios", "tidyverse", "d
 ##' 10
 
 # Store the files to load:
-batches <- list.files("./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_inputs/")
+batches <- list.files(
+  "./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_inputs/"
+)
 batches <- str_sort(batches, numeric = TRUE)
 
 # For each batch, run the simulations:
-n <- 10; for(i in n:n) {
-
+n <- 10
+for (i in n:n) {
   # Store i as the the batch number:
   batch_number <- i
-  saveRDS(object = batch_number, file = "./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_number.rds")
+  saveRDS(
+    object = batch_number,
+    file = "./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_number.rds"
+  )
 
   # Print the iteration:
   print(batch_number)
 
   # Run the simulation batch and assign the ID to a batch-specific object:
   assign(
-
     # Name the object to save the simulation batch ID to:
     x = paste0("sim_out_batch_3_", i),
 
     # Assign the object the hipercow ID:
     value = hipercow::task_create_explicit(
-
       # Everything in the expr will be run on the cluster:
       expr = quote({
-
         # Store the files to load:
-        batches <- list.files("./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_inputs/")
+        batches <- list.files(
+          "./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_inputs/"
+        )
         batches <- str_sort(batches, numeric = TRUE)
 
         # Load the batch number to simulate:
-        batch_number <- readRDS("./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_number.rds")
+        batch_number <- readRDS(
+          "./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_number.rds"
+        )
 
         # Load in the i-th batch of parameter lists:
         parameters <- readRDS(
-          file = paste0("./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_inputs/", batches[batch_number])
+          file = paste0(
+            "./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_inputs/",
+            batches[batch_number]
+          )
         )
 
         # Load in the run_simulations_hipercow() function:
@@ -101,9 +112,12 @@ n <- 10; for(i in n:n) {
         # Store the simulation outputs:
         saveRDS(
           object = scenario_outputs,
-          file = paste0("./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_outputs/scenario_output_batch_3_", batch_number, ".rds")
+          file = paste0(
+            "./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_outputs/scenario_output_batch_3_",
+            batch_number,
+            ".rds"
+          )
         )
-
       }),
 
       # Specify the cluster resources etc.
@@ -120,7 +134,7 @@ hipercow::task_status(sim_out_batch_3_10)
 
 # Store the job IDs for each simulation in an object:
 job_IDS <- list()
-for(i in 1:length(reruns)) {
+for (i in 1:length(reruns)) {
   job_IDS[[i]] <- get(paste0("sim_out_batch_3_", reruns[i]))
 }
 
@@ -131,19 +145,25 @@ job_IDS$`10` <- sim_out_batch_3_10
 #job_IDS <- readRDS("./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_3_reruns_job_ids.rds")
 
 # View the current task statuses
-for(i in 1:length(reruns)) {
+for (i in 1:length(reruns)) {
   print(reruns[i])
   print(task_status(job_IDS[[i]]))
 }
 
 # Check the status of all jobs running on the cluster:
-x <- sapply(job_IDS, hipercow::task_status); table(x)
+x <- sapply(job_IDS, hipercow::task_status)
+table(x)
 
 # View the failures:
 which(x == "running")
 
 # Save the job IDs:
-saveRDS(object = job_IDS, file = "./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_3_reruns_2_job_ids.rds")
+saveRDS(
+  object = job_IDS,
+  file = "./Report_3_Endemic/Endemic_Simulation_Batch_3/batch_3_reruns_2_job_ids.rds"
+)
 
 # View the number of outputs saved:
-length(list.files("./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_outputs/"))
+length(list.files(
+  "./Report_3_Endemic/Endemic_Simulation_Batch_3/endemic_batch_3_outputs/"
+))

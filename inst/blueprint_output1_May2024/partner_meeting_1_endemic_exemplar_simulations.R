@@ -60,11 +60,13 @@ library(gridExtra)
 ##'
 
 # Generate the betas required to achieve the target R0 of 2:
-exemplar_run_betas <- generate_betas(beta_community = 0.062,
-                                     household_ratio = 3,
-                                     school_ratio = 3,
-                                     workplace_ratio = 3,
-                                     leisure_ratio = 3)
+exemplar_run_betas <- generate_betas(
+  beta_community = 0.062,
+  household_ratio = 3,
+  school_ratio = 3,
+  workplace_ratio = 3,
+  leisure_ratio = 3
+)
 
 # Calculate the simulation_time required to simulate a 2 year period: 5 years took about 19 minutes
 years_to_simulate <- 10
@@ -78,84 +80,115 @@ duration_of_immunity <- 14
 uvc_timestep <- 500
 
 # Generate the list of model parameters for the baseline, no-intervention run:
-parameters_endemic_exemplar_baseline <- get_parameters(overrides = list(
-  human_population = 10000,
-  beta_household = exemplar_run_betas$beta_household,
-  beta_school = exemplar_run_betas$beta_school,
-  beta_workplace = exemplar_run_betas$beta_workplace,
-  beta_leisure = exemplar_run_betas$beta_leisure,
-  beta_community = exemplar_run_betas$beta_community,
-  endemic_or_epidemic = "endemic",
-  duration_immune = duration_of_immunity,
-  simulation_time = simulation_timesteps
-))
+parameters_endemic_exemplar_baseline <- get_parameters(
+  overrides = list(
+    human_population = 10000,
+    beta_household = exemplar_run_betas$beta_household,
+    beta_school = exemplar_run_betas$beta_school,
+    beta_workplace = exemplar_run_betas$beta_workplace,
+    beta_leisure = exemplar_run_betas$beta_leisure,
+    beta_community = exemplar_run_betas$beta_community,
+    endemic_or_epidemic = "endemic",
+    duration_immune = duration_of_immunity,
+    simulation_time = simulation_timesteps
+  )
+)
 
 # Set up model parameters for random far UVC coverage type
 parameters_endemic_exemplar_baseline %>%
-  set_uvc(setting = "school",
-          coverage = 0.5,
-          coverage_type = "random",
-          efficacy = 0.75,
-          timestep = uvc_timestep) %>%
-  set_uvc(setting = "workplace",
-          coverage = 0.5,
-          coverage_type = "random",
-          efficacy = 0.75,
-          timestep = uvc_timestep) %>%
-  set_uvc(setting = "leisure",
-          coverage = 0.5,
-          coverage_type = "random",
-          efficacy = 0.75,
-          timestep = uvc_timestep) -> parameters_endemic_exemplar_uvc_random
+  set_uvc(
+    setting = "school",
+    coverage = 0.5,
+    coverage_type = "random",
+    efficacy = 0.75,
+    timestep = uvc_timestep
+  ) %>%
+  set_uvc(
+    setting = "workplace",
+    coverage = 0.5,
+    coverage_type = "random",
+    efficacy = 0.75,
+    timestep = uvc_timestep
+  ) %>%
+  set_uvc(
+    setting = "leisure",
+    coverage = 0.5,
+    coverage_type = "random",
+    efficacy = 0.75,
+    timestep = uvc_timestep
+  ) -> parameters_endemic_exemplar_uvc_random
 
 # Set up model parameters for targeted far UVC coverage type
 parameters_endemic_exemplar_baseline %>%
-  set_uvc(setting = "school",
-          coverage = 0.5,
-          coverage_type = "targeted",
-          efficacy = 0.75,
-          timestep = uvc_timestep) %>%
-  set_uvc(setting = "workplace",
-          coverage = 0.5,
-          coverage_type = "targeted",
-          efficacy = 0.75,
-          timestep = uvc_timestep) %>%
-  set_uvc(setting = "leisure",
-          coverage = 0.5,
-          coverage_type = "targeted",
-          efficacy = 0.75,
-          timestep = uvc_timestep) -> parameters_endemic_exemplar_uvc_targeted
+  set_uvc(
+    setting = "school",
+    coverage = 0.5,
+    coverage_type = "targeted",
+    efficacy = 0.75,
+    timestep = uvc_timestep
+  ) %>%
+  set_uvc(
+    setting = "workplace",
+    coverage = 0.5,
+    coverage_type = "targeted",
+    efficacy = 0.75,
+    timestep = uvc_timestep
+  ) %>%
+  set_uvc(
+    setting = "leisure",
+    coverage = 0.5,
+    coverage_type = "targeted",
+    efficacy = 0.75,
+    timestep = uvc_timestep
+  ) -> parameters_endemic_exemplar_uvc_targeted
 
 #----- 3) Simulations ------------------------------------------------------------------------------
 
 # Run the baseline, no intervention scenario (approx. 599 seconds):
 tictoc::tic()
-endemic_baseline_output_raw <- run_simulation(parameters_list = parameters_endemic_exemplar_baseline)
+endemic_baseline_output_raw <- run_simulation(
+  parameters_list = parameters_endemic_exemplar_baseline
+)
 tictoc::toc()
 
 # Save the output:
-saveRDS(endemic_baseline_output_raw, "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_baseline_2_week_immunity_10_years.rds")
+saveRDS(
+  endemic_baseline_output_raw,
+  "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_baseline_2_week_immunity_10_years.rds"
+)
 
 # Run the randomly assigned far UVC simulation:
 tictoc::tic()
-endemic_random_uvc_output_raw <- run_simulation(parameters_list = parameters_endemic_exemplar_uvc_random)
+endemic_random_uvc_output_raw <- run_simulation(
+  parameters_list = parameters_endemic_exemplar_uvc_random
+)
 tictoc::toc()
 
 # Save the output
-saveRDS(endemic_random_uvc_output_raw, "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_random_uvc_2_week_immunity_10_years.rds")
+saveRDS(
+  endemic_random_uvc_output_raw,
+  "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_random_uvc_2_week_immunity_10_years.rds"
+)
 #
 # # Run the targeted far UVC simulation:
 tictoc::tic()
-endemic_targeted_uvc_output_raw <- run_simulation(parameters_list = parameters_endemic_exemplar_uvc_targeted)
+endemic_targeted_uvc_output_raw <- run_simulation(
+  parameters_list = parameters_endemic_exemplar_uvc_targeted
+)
 tictoc::toc()
 
 # # Set up the parameter list for the far UVC with randomised coverage:
-saveRDS(endemic_targeted_uvc_output_raw, "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_targeted_uvc_2_week_immunity_10_years.rds")
+saveRDS(
+  endemic_targeted_uvc_output_raw,
+  "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_targeted_uvc_2_week_immunity_10_years.rds"
+)
 
 #----- 4) Exemplar Run Visualisation 1: Individual SEIR Plots --------------------------------------
 
 # Load the simulation outputs:
-endemic_baseline_output_raw <- readRDS("C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_baseline_2_week_immunity_10_years.rds")
+endemic_baseline_output_raw <- readRDS(
+  "C:/Users/trb216/OneDrive - Imperial College London/Desktop/temp_endemic_results/endemic_baseline_2_week_immunity_10_years.rds"
+)
 endemic_random_uvc_output_raw
 endemic_targeted_uvc_output_raw
 
@@ -167,23 +200,29 @@ plotting_window <- 900
 
 # Plot the dynamics in the endemic baseline simulation:
 endemic_baseline_output_raw %>%
-  rename("S" = S_count,
-         "E" = E_count,
-         "I" = I_count,
-         "R" = R_count) %>%
+  rename("S" = S_count, "E" = E_count, "I" = I_count, "R" = R_count) %>%
   mutate(Total_count = S + E + I + R) %>%
-  mutate(S = S / Total_count,
-         E = E / Total_count,
-         I = I / Total_count,
-         R = R / Total_count) %>%
+  mutate(
+    S = S / Total_count,
+    E = E / Total_count,
+    I = I / Total_count,
+    R = R / Total_count
+  ) %>%
   select(timestep, S, E, I, R) %>%
   filter(timestep <= 1500) %>%
-  pivot_longer(cols = c(S, E, I, R), names_to = "State", values_to = "Proportion") %>%
+  pivot_longer(
+    cols = c(S, E, I, R),
+    names_to = "State",
+    values_to = "Proportion"
+  ) %>%
   mutate(State = factor(State, levels = c("S", "E", "I", "R"))) %>%
   ggplot(aes(x = timestep, y = Proportion, colour = State)) +
-  geom_hline(yintercept = max(endemic_baseline_output_raw$R_count)/parameters_endemic_exemplar_baseline$human_population,
-             linetype = "dashed",
-             linewidth = 1) +
+  geom_hline(
+    yintercept = max(endemic_baseline_output_raw$R_count) /
+      parameters_endemic_exemplar_baseline$human_population,
+    linetype = "dashed",
+    linewidth = 1
+  ) +
   geom_line(linewidth = 1.5) +
   theme_bw() +
   labs(x = "Time", y = "Proportion of Population", colour = "Disease State") +
@@ -194,23 +233,29 @@ endemic_baseline_output_raw %>%
 
 # Plot the dynamics in the endemic random far-UVC simulation:
 endemic_random_uvc_output_raw %>%
-  rename("S" = S_count,
-         "E" = E_count,
-         "I" = I_count,
-         "R" = R_count) %>%
+  rename("S" = S_count, "E" = E_count, "I" = I_count, "R" = R_count) %>%
   mutate(Total_count = S + E + I + R) %>%
-  mutate(S = S / Total_count,
-         E = E / Total_count,
-         I = I / Total_count,
-         R = R / Total_count) %>%
+  mutate(
+    S = S / Total_count,
+    E = E / Total_count,
+    I = I / Total_count,
+    R = R / Total_count
+  ) %>%
   select(timestep, S, E, I, R) %>%
   filter(timestep <= 1500) %>%
-  pivot_longer(cols = c(S, E, I, R), names_to = "State", values_to = "Proportion") %>%
+  pivot_longer(
+    cols = c(S, E, I, R),
+    names_to = "State",
+    values_to = "Proportion"
+  ) %>%
   mutate(State = factor(State, levels = c("S", "E", "I", "R"))) %>%
   ggplot(aes(x = timestep, y = Proportion, colour = State)) +
-  geom_hline(yintercept = max(endemic_baseline_output_raw$R_count)/parameters_endemic_exemplar_baseline$human_population,
-             linetype = "dashed",
-             linewidth = 1) +
+  geom_hline(
+    yintercept = max(endemic_baseline_output_raw$R_count) /
+      parameters_endemic_exemplar_baseline$human_population,
+    linetype = "dashed",
+    linewidth = 1
+  ) +
   geom_line(linewidth = 1.5) +
   theme_bw() +
   labs(x = "Time", y = "Proportion of Population", colour = "Disease State") +
@@ -221,23 +266,29 @@ endemic_random_uvc_output_raw %>%
 
 # Plot the dynamics in the endemic targeted far-UVC simulation:
 endemic_targeted_uvc_output_raw %>%
-  rename("S" = S_count,
-         "E" = E_count,
-         "I" = I_count,
-         "R" = R_count) %>%
+  rename("S" = S_count, "E" = E_count, "I" = I_count, "R" = R_count) %>%
   mutate(Total_count = S + E + I + R) %>%
-  mutate(S = S / Total_count,
-         E = E / Total_count,
-         I = I / Total_count,
-         R = R / Total_count) %>%
+  mutate(
+    S = S / Total_count,
+    E = E / Total_count,
+    I = I / Total_count,
+    R = R / Total_count
+  ) %>%
   select(timestep, S, E, I, R) %>%
   filter(timestep <= 1500) %>%
-  pivot_longer(cols = c(S, E, I, R), names_to = "State", values_to = "Proportion") %>%
+  pivot_longer(
+    cols = c(S, E, I, R),
+    names_to = "State",
+    values_to = "Proportion"
+  ) %>%
   mutate(State = factor(State, levels = c("S", "E", "I", "R"))) %>%
   ggplot(aes(x = timestep, y = Proportion, colour = State)) +
-  geom_hline(yintercept = max(endemic_baseline_output_raw$R_count)/parameters_endemic_exemplar_baseline$human_population,
-             linetype = "dashed",
-             linewidth = 1) +
+  geom_hline(
+    yintercept = max(endemic_baseline_output_raw$R_count) /
+      parameters_endemic_exemplar_baseline$human_population,
+    linetype = "dashed",
+    linewidth = 1
+  ) +
   geom_line(linewidth = 1.5) +
   theme_bw() +
   labs(x = "Time", y = "Proportion of Population", colour = "Disease State") +
@@ -250,21 +301,23 @@ endemic_targeted_uvc_output_raw %>%
 
 # Combined plot:
 grid.arrange(
-
   # a) No-Intervention Baseline:
   endemic_baseline_output_raw %>%
-    rename("S" = S_count,
-           "E" = E_count,
-           "I" = I_count,
-           "R" = R_count) %>%
+    rename("S" = S_count, "E" = E_count, "I" = I_count, "R" = R_count) %>%
     mutate(Total_count = S + E + I + R) %>%
-    mutate(S = S / Total_count,
-           E = E / Total_count,
-           I = I / Total_count,
-           R = R / Total_count) %>%
+    mutate(
+      S = S / Total_count,
+      E = E / Total_count,
+      I = I / Total_count,
+      R = R / Total_count
+    ) %>%
     select(timestep, S, E, I, R) %>%
     filter(timestep %in% 400:1000) %>%
-    pivot_longer(cols = c(S, E, I, R), names_to = "State", values_to = "Proportion") %>%
+    pivot_longer(
+      cols = c(S, E, I, R),
+      names_to = "State",
+      values_to = "Proportion"
+    ) %>%
     mutate(State = factor(State, levels = c("S", "E", "I", "R"))) %>%
     #filter(State %in% c("I", "R")) %>%
     ggplot(aes(x = timestep, y = Proportion, colour = State)) +
@@ -274,8 +327,10 @@ grid.arrange(
     geom_line(linewidth = 1.5) +
     geom_vline(xintercept = uvc_timestep, linetype = "dashed") +
     theme_bw() +
-    theme(legend.position = "none",
-          axis.title.x = element_text(colour = "white")) +
+    theme(
+      legend.position = "none",
+      axis.title.x = element_text(colour = "white")
+    ) +
     labs(x = "Time", y = "Proportion of Population", colour = "Disease State") +
     scale_colour_discrete(type = disease_state_colours) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
@@ -283,18 +338,21 @@ grid.arrange(
 
   # b) Randomly Assigned Far-UVC
   endemic_random_uvc_output_raw %>%
-    rename("S" = S_count,
-           "E" = E_count,
-           "I" = I_count,
-           "R" = R_count) %>%
+    rename("S" = S_count, "E" = E_count, "I" = I_count, "R" = R_count) %>%
     mutate(Total_count = S + E + I + R) %>%
-    mutate(S = S / Total_count,
-           E = E / Total_count,
-           I = I / Total_count,
-           R = R / Total_count) %>%
+    mutate(
+      S = S / Total_count,
+      E = E / Total_count,
+      I = I / Total_count,
+      R = R / Total_count
+    ) %>%
     select(timestep, S, E, I, R) %>%
     filter(timestep %in% 400:1000) %>%
-    pivot_longer(cols = c(S, E, I, R), names_to = "State", values_to = "Proportion") %>%
+    pivot_longer(
+      cols = c(S, E, I, R),
+      names_to = "State",
+      values_to = "Proportion"
+    ) %>%
     mutate(State = factor(State, levels = c("S", "E", "I", "R"))) %>%
     #filter(State %in% c("I", "R")) %>%
     ggplot(aes(x = timestep, y = Proportion, colour = State)) +
@@ -304,8 +362,10 @@ grid.arrange(
     geom_line(linewidth = 1.5) +
     geom_vline(xintercept = uvc_timestep, linetype = "dashed") +
     theme_bw() +
-    theme(legend.position = "none",
-          axis.title.y = element_text(colour = "white")) +
+    theme(
+      legend.position = "none",
+      axis.title.y = element_text(colour = "white")
+    ) +
     labs(x = "Time", y = "Proportion of Population", colour = "Disease State") +
     scale_colour_discrete(type = disease_state_colours) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +
@@ -313,18 +373,21 @@ grid.arrange(
 
   # c) Targeted Assigned Far-UVC
   endemic_targeted_uvc_output_raw %>%
-    rename("S" = S_count,
-           "E" = E_count,
-           "I" = I_count,
-           "R" = R_count) %>%
+    rename("S" = S_count, "E" = E_count, "I" = I_count, "R" = R_count) %>%
     mutate(Total_count = S + E + I + R) %>%
-    mutate(S = S / Total_count,
-           E = E / Total_count,
-           I = I / Total_count,
-           R = R / Total_count) %>%
+    mutate(
+      S = S / Total_count,
+      E = E / Total_count,
+      I = I / Total_count,
+      R = R / Total_count
+    ) %>%
     select(timestep, S, E, I, R) %>%
     filter(timestep %in% 400:1000) %>%
-    pivot_longer(cols = c(S, E, I, R), names_to = "State", values_to = "Proportion") %>%
+    pivot_longer(
+      cols = c(S, E, I, R),
+      names_to = "State",
+      values_to = "Proportion"
+    ) %>%
     mutate(State = factor(State, levels = c("S", "E", "I", "R"))) %>%
     #filter(State %in% c("I", "R")) %>%
     ggplot(aes(x = timestep, y = Proportion, colour = State)) +
@@ -334,9 +397,11 @@ grid.arrange(
     geom_line(linewidth = 1.5) +
     geom_vline(xintercept = uvc_timestep, linetype = "dashed") +
     theme_bw() +
-    theme(legend.position = "none",
-          axis.title.y = element_text(colour = "white"),
-          axis.title.x = element_text(colour = "white")) +
+    theme(
+      legend.position = "none",
+      axis.title.y = element_text(colour = "white"),
+      axis.title.x = element_text(colour = "white")
+    ) +
     labs(x = "Time", y = "Proportion of Population", colour = "Disease State") +
     scale_colour_discrete(type = disease_state_colours) +
     scale_y_continuous(expand = c(0, 0), limits = c(0, 1)) +

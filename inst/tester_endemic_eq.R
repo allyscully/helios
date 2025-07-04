@@ -1,5 +1,6 @@
 # Loading helios
-library(helios); library(tictoc)
+library(helios)
+library(tictoc)
 
 # Calculating approximate equilibrium solution for flu
 # if(archetype == "flu") {
@@ -15,16 +16,20 @@ library(helios); library(tictoc)
 # Checking the new get parameters works
 human_pop <- 10000
 simulation_time <- 1000
-parameters_list <- get_parameters(overrides = list(human_population = human_pop,
-                                                   number_initial_S = 2 * 1500,
-                                                   number_initial_E = 2 * 100,
-                                                   number_initial_I = 2 * 200,
-                                                   number_initial_R = 2 * 3200,
-                                                   endemic_or_epidemic = "endemic",
-                                                   duration_immune = 365,
-                                                   prob_inf_external = 0.00025,
-                                                   simulation_time = simulation_time),
-                                  archetype = "sars_cov_2")
+parameters_list <- get_parameters(
+  overrides = list(
+    human_population = human_pop,
+    number_initial_S = 2 * 1500,
+    number_initial_E = 2 * 100,
+    number_initial_I = 2 * 200,
+    number_initial_R = 2 * 3200,
+    endemic_or_epidemic = "endemic",
+    duration_immune = 365,
+    prob_inf_external = 0.00025,
+    simulation_time = simulation_time
+  ),
+  archetype = "sars_cov_2"
+)
 
 # Running the model
 tic()
@@ -43,15 +48,36 @@ lines(output$timestep, output$I_count, col = "green")
 lines(output$timestep, output$R_count, col = "purple")
 
 par(mfrow = c(2, 2))
-plot(output$timestep, output$S_count, type = "l", ylim = c(0, max(output$S_count)))
-plot(output$timestep, output$E_count, col = "red", type = "l", ylim = c(0, max(output$E_count)))
-plot(output$timestep, output$I_count, col = "green", type = "l", ylim = c(0, max(output$I_count)))
-plot(output$timestep, output$R_count, col = "purple", type = "l", ylim = c(0, max(output$R_count)))
-
+plot(
+  output$timestep,
+  output$S_count,
+  type = "l",
+  ylim = c(0, max(output$S_count))
+)
+plot(
+  output$timestep,
+  output$E_count,
+  col = "red",
+  type = "l",
+  ylim = c(0, max(output$E_count))
+)
+plot(
+  output$timestep,
+  output$I_count,
+  col = "green",
+  type = "l",
+  ylim = c(0, max(output$I_count))
+)
+plot(
+  output$timestep,
+  output$R_count,
+  col = "purple",
+  type = "l",
+  ylim = c(0, max(output$R_count))
+)
 
 ## For flu - runtime should be X days (Y burnin + 365 with UVC)
 ## For SC2 - runtime should be A days (B burnin + 365 with UVC)
 
 ## need to check how simulation time scales with population size
 ## 5000 pop with flu and duration immune 1 year takes X hours to run
-

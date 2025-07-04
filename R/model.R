@@ -6,24 +6,28 @@
 #' @family model
 #' @export
 run_simulation <- function(parameters_list) {
-
   # Generate the model variables:
   variables_list <- create_variables(parameters_list)
   parameters_list <- variables_list$parameters_list # note: this could be written more nicely and in a way
-  variables_list <- variables_list$variables_list   #       that doesn't require recursive modification
+  variables_list <- variables_list$variables_list #       that doesn't require recursive modification
 
   # Generate the model events:
-  events_list <- create_events(variables_list = variables_list, parameters_list = parameters_list)
+  events_list <- create_events(
+    variables_list = variables_list,
+    parameters_list = parameters_list
+  )
 
   # Set up the model renderer:
-  timesteps <- round(parameters_list$simulation_time/parameters_list$dt)
+  timesteps <- round(parameters_list$simulation_time / parameters_list$dt)
   renderer <- individual::Render$new(timesteps)
 
   # Generate the model processes:
-  processes_list <- create_processes(variables_list = variables_list,
-                                     events_list = events_list,
-                                     parameters_list = parameters_list,
-                                     renderer = renderer)
+  processes_list <- create_processes(
+    variables_list = variables_list,
+    events_list = events_list,
+    parameters_list = parameters_list,
+    renderer = renderer
+  )
 
   # Use individual::simulation_loop() to run the model for the specified number of timesteps
   individual::simulation_loop(
@@ -43,16 +47,20 @@ run_simulation <- function(parameters_list) {
 #' @family model
 #' @export
 #'
-run_simulations_from_table <- function(parameters_table, output_type = "simulations") {
-
+run_simulations_from_table <- function(
+  parameters_table,
+  output_type = "simulations"
+) {
   # Check that the parameters_table is a data.frame object:
-  if(!is.data.frame(parameters_table)) {
+  if (!is.data.frame(parameters_table)) {
     stop("Error: parameters_table is not a data.frame - please reformat")
   }
 
   # Check that all parameters in the parameter_table are present in the get_parameters() parameters_list:
-  if(!all(names(parameters_table) %in% names(get_parameters()))) {
-    stop("Error: Parameter name in parameter_table not a recognised helios parameter")
+  if (!all(names(parameters_table) %in% names(get_parameters()))) {
+    stop(
+      "Error: Parameter name in parameter_table not a recognised helios parameter"
+    )
   }
 
   # Convert the parameters_table to data.frame format:
@@ -65,37 +73,48 @@ run_simulations_from_table <- function(parameters_table, output_type = "simulati
   simulation_outputs <- list()
 
   # TODO: Add lines to outputs that append the parameters varied to the dataframe:
-  for(i in 1:nrow(parameters_table)) {
-
+  for (i in 1:nrow(parameters_table)) {
     # Open a new parameter list for the i-th row of the parameter table:
     parameters_lists[[i]] <- get_parameters()
 
     # For each column in the parameter table, overwrite the corresponding parameter in the list:
-    for(j in 1:ncol(parameters_table)) {
-      parameters_lists[[i]][[names(parameters_table[j])]] <- parameters_table[i,j]
+    for (j in 1:ncol(parameters_table)) {
+      parameters_lists[[i]][[names(parameters_table[j])]] <- parameters_table[
+        i,
+        j
+      ]
     }
 
     # Run the simulations if output_type is simulations or both:
-    if(output_type %in% c("simulations", "both")) {
-
+    if (output_type %in% c("simulations", "both")) {
       # Run the simulation i-th simulation:
-      simulation_outputs[[i]] <- run_simulation(parameters_list = parameters_lists[[i]])
+      simulation_outputs[[i]] <- run_simulation(
+        parameters_list = parameters_lists[[i]]
+      )
 
       # Append the varied parameters as columns:
-      simulation_outputs[[i]] <- dplyr::bind_cols(simulation_outputs[[i]], dplyr::as_tibble(parameters_table[i,]))
+      simulation_outputs[[i]] <- dplyr::bind_cols(
+        simulation_outputs[[i]],
+        dplyr::as_tibble(parameters_table[i, ])
+      )
 
       # Print the simulation progress:
-      print(paste0("Simulation ", i, " complete (", (i/nrow(parameters_table) * 100), "% of simulations complete)"))
-
+      print(paste0(
+        "Simulation ",
+        i,
+        " complete (",
+        (i / nrow(parameters_table) * 100),
+        "% of simulations complete)"
+      ))
     }
   }
 
   # Determine which objects to return:
-  if(output_type == "parameters") {
+  if (output_type == "parameters") {
     return(parameters_lists)
-  } else if(output_type == "simulations") {
+  } else if (output_type == "simulations") {
     return(simulation_outputs)
-  } else if(output_type == "both") {
+  } else if (output_type == "both") {
     return(list(parameters_lists, simulation_outputs))
   }
 }

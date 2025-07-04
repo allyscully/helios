@@ -35,11 +35,13 @@ r0 = c(1.25, 1.5, 2, 2.5, 3)
 beta_communities <- c(0.036, 0.044, 0.062, 0.080, 0.097)
 
 # Use the generate_betas() function to generate the correpsonding betas for the rest of the settings:
-simulation_betas <- generate_betas(beta_community = beta_communities,
-                                   household_ratio = 3,
-                                   school_ratio = 3,
-                                   workplace_ratio = 3,
-                                   leisure_ratio = 3)[,1:6]
+simulation_betas <- generate_betas(
+  beta_community = beta_communities,
+  household_ratio = 3,
+  school_ratio = 3,
+  workplace_ratio = 3,
+  leisure_ratio = 3
+)[, 1:6]
 
 # Append a vector of R0 values to the corresponding betas:
 simulation_betas <- data.frame(r0, simulation_betas)
@@ -57,11 +59,13 @@ coverage_type <- c("random", "targeted")
 iterations <- 1:5
 
 # Set up the unique simulations to run
-simulations_to_run <- expand.grid("iteration" = iterations,
-                                  "r0" = r0,
-                                  "coverage" = far_uvc_coverage,
-                                  "efficacy" = far_uvc_efficacy,
-                                  "coverage_type" = coverage_type)
+simulations_to_run <- expand.grid(
+  "iteration" = iterations,
+  "r0" = r0,
+  "coverage" = far_uvc_coverage,
+  "efficacy" = far_uvc_efficacy,
+  "coverage_type" = coverage_type
+)
 
 # Append a column for simulation ID:
 simulations_to_run$ID <- 1:nrow(simulations_to_run)
@@ -80,38 +84,45 @@ head(simulations_to_run)
 parameter_lists <- list()
 
 # Set up the simulation parameter lists for each row of the simulations_to_run dataframe:
-for(i in 1:nrow(simulations_to_run)) {
-
+for (i in 1:nrow(simulations_to_run)) {
   # Set up the parameters list:
-  parameter_lists[[i]] <- get_parameters(overrides = list(
-    human_population = 10000,
-    beta_household = simulations_to_run$beta_household[i],
-    beta_school = simulations_to_run$beta_school[i],
-    beta_workplace = simulations_to_run$beta_workplace[i],
-    beta_leisure = simulations_to_run$beta_leisure[i],
-    beta_community = simulations_to_run$beta_community[i],
-    endemic_or_epidemic = "epidemic",
-    simulation_time = simulation_timesteps
-  ))
+  parameter_lists[[i]] <- get_parameters(
+    overrides = list(
+      human_population = 10000,
+      beta_household = simulations_to_run$beta_household[i],
+      beta_school = simulations_to_run$beta_school[i],
+      beta_workplace = simulations_to_run$beta_workplace[i],
+      beta_leisure = simulations_to_run$beta_leisure[i],
+      beta_community = simulations_to_run$beta_community[i],
+      endemic_or_epidemic = "epidemic",
+      simulation_time = simulation_timesteps
+    )
+  )
 
   # If coverage and efficacy are greater than 0, append the far UVC parameters:
-  if(simulations_to_run$coverage[i] > 0 | simulations_to_run$efficacy[i] > 0) {
+  if (simulations_to_run$coverage[i] > 0 | simulations_to_run$efficacy[i] > 0) {
     parameter_lists[[i]] %>%
-      set_uvc(setting = "school",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) %>%
-      set_uvc(setting = "workplace",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) %>%
-      set_uvc(setting = "leisure",
-              coverage = simulations_to_run$coverage[i],
-              coverage_type = as.character(simulations_to_run$coverage_type[i]),
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = 1) -> parameter_lists[[i]]
+      set_uvc(
+        setting = "school",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) %>%
+      set_uvc(
+        setting = "workplace",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) %>%
+      set_uvc(
+        setting = "leisure",
+        coverage = simulations_to_run$coverage[i],
+        coverage_type = as.character(simulations_to_run$coverage_type[i]),
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = 1
+      ) -> parameter_lists[[i]]
   }
 }
 
@@ -121,8 +132,10 @@ for(i in 1:nrow(simulations_to_run)) {
 simulation_outputs <- list()
 
 # Run through the simulations in simulations_to_run:
-for(i in 1:length(parameter_lists)) {
-  simulation_outputs[[i]] <- run_simulation(parameters_list = parameter_lists[[i]])
+for (i in 1:length(parameter_lists)) {
+  simulation_outputs[[i]] <- run_simulation(
+    parameters_list = parameter_lists[[i]]
+  )
   simulation_outputs[[i]]$ID <- simulations_to_run$ID[i]
   simulation_outputs[[i]]$r0 <- simulations_to_run$r0[i]
   simulation_outputs[[i]]$coverage <- simulations_to_run$coverage[i]
@@ -130,28 +143,38 @@ for(i in 1:length(parameter_lists)) {
   simulation_outputs[[i]]$coverage_type <- simulations_to_run$coverage_type[i]
   simulation_outputs[[i]]$beta_community <- simulations_to_run$beta_community[i]
   simulation_outputs[[i]]$iteration <- simulations_to_run$iteration[i]
-  print(paste0(i, "th simulation complete (", (i/length(parameter_lists))*100, "% complete)"))
+  print(paste0(
+    i,
+    "th simulation complete (",
+    (i / length(parameter_lists)) * 100,
+    "% complete)"
+  ))
 }
 
 #----- 4) Simulation Post-Processing ---------------------------------------------------------------
 
 # Combine the simulation outputs into a combined data frame:
 combined_parameter_sweep_outputs <- data.frame()
-for(i in 1:length(simulation_outputs)) {
-  combined_parameter_sweep_outputs <- bind_rows(combined_parameter_sweep_outputs, simulation_outputs[[i]])
+for (i in 1:length(simulation_outputs)) {
+  combined_parameter_sweep_outputs <- bind_rows(
+    combined_parameter_sweep_outputs,
+    simulation_outputs[[i]]
+  )
 }
 
 # Convert the dataframe to long form
 combined_parameter_sweep_outputs %>%
   mutate(total_count = S_count + E_count + I_count + R_count) %>%
-  mutate(S = S_count/total_count,
-         E = E_count/total_count,
-         I = I_count/total_count,
-         R = R_count/total_count) %>%
-  pivot_longer(cols = c(S, E, I, R),
-               names_to = "Disease_State",
-               values_to = "Proportion") -> combined_parameter_sweep_outputs_long
+  mutate(
+    S = S_count / total_count,
+    E = E_count / total_count,
+    I = I_count / total_count,
+    R = R_count / total_count
+  ) %>%
+  pivot_longer(
+    cols = c(S, E, I, R),
+    names_to = "Disease_State",
+    values_to = "Proportion"
+  ) -> combined_parameter_sweep_outputs_long
 
 #----- 5) Visualisation ----------------------------------------------------------------------------
-
-

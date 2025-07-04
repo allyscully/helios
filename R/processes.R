@@ -8,41 +8,59 @@
 #'
 #' @family processes
 #' @export
-create_processes <- function(variables_list, events_list, parameters_list, renderer) {
-
+create_processes <- function(
+  variables_list,
+  events_list,
+  parameters_list,
+  renderer
+) {
   # Open a list of processes to store the model processes in:
   processes_list <- list(
-
     # ===============================
     # Disease State Progression
     # ===============================
-    SE_process = create_SE_process(variables_list = variables_list,
-                                   events_list = events_list,
-                                   parameters_list = parameters_list,
-                                   renderer = renderer),
+    SE_process = create_SE_process(
+      variables_list = variables_list,
+      events_list = events_list,
+      parameters_list = parameters_list,
+      renderer = renderer
+    ),
 
-    EI_process = create_EI_process(variables_list = variables_list,
-                                   events_list = events_list,
-                                   parameters_list = parameters_list),
+    EI_process = create_EI_process(
+      variables_list = variables_list,
+      events_list = events_list,
+      parameters_list = parameters_list
+    ),
 
-    IR_process = create_IR_process(variables_list = variables_list,
-                                   events_list = events_list,
-                                   parameters_list = parameters_list)
-
+    IR_process = create_IR_process(
+      variables_list = variables_list,
+      events_list = events_list,
+      parameters_list = parameters_list
+    )
   )
 
   # ===============================
   # ENDEMIC DISEASE MODE
   # ===============================
   if (parameters_list$endemic_or_epidemic == "endemic") {
-    processes_list <- c(processes_list,
-                        list(RS_process = create_RS_process(variables_list = variables_list,
-                                                            events_list = events_list,
-                                                            parameters_list = parameters_list)),
-                        list(external_source_process = create_external_source_process(variables_list = variables_list,
-                                                                                      events_list = events_list,
-                                                                                      parameters_list = parameters_list,
-                                                                                      renderer = renderer)))
+    processes_list <- c(
+      processes_list,
+      list(
+        RS_process = create_RS_process(
+          variables_list = variables_list,
+          events_list = events_list,
+          parameters_list = parameters_list
+        )
+      ),
+      list(
+        external_source_process = create_external_source_process(
+          variables_list = variables_list,
+          events_list = events_list,
+          parameters_list = parameters_list,
+          renderer = renderer
+        )
+      )
+    )
   }
 
   # ===============================
@@ -60,7 +78,6 @@ create_processes <- function(variables_list, events_list, parameters_list, rende
 
   # Return the model processes:
   return(processes_list)
-
 }
 
 #' Create process governing susceptible to exposed disease state transition
@@ -69,8 +86,12 @@ create_processes <- function(variables_list, events_list, parameters_list, rende
 #'
 #' @family processes
 #' @export
-create_SE_process <- function(variables_list, events_list, parameters_list, renderer){
-
+create_SE_process <- function(
+  variables_list,
+  events_list,
+  parameters_list,
+  renderer
+) {
   ## Pre-calculating the things that only have to be calculated once
 
   ##### HOUSEHOLDS #####
@@ -82,7 +103,9 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
   household_index_list <- vector(mode = "list", length = num_households)
   household_size_list <- vector(mode = "list", length = num_households)
   for (i in seq(num_households)) {
-    household_bitset_list[[i]] <- variables_list$household$get_index_of(as.character(i))
+    household_bitset_list[[
+      i
+    ]] <- variables_list$household$get_index_of(as.character(i))
     household_index_list[[i]] <- household_bitset_list[[i]]$to_vector()
     household_size_list[[i]] <- length(household_index_list[[i]])
   }
@@ -96,7 +119,9 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
   workplace_index_list <- vector(mode = "list", length = num_workplaces)
   workplace_size_list <- vector(mode = "list", length = num_workplaces)
   for (i in seq(num_workplaces)) {
-    workplace_bitset_list[[i]] <- variables_list$workplace$get_index_of(as.character(i))
+    workplace_bitset_list[[
+      i
+    ]] <- variables_list$workplace$get_index_of(as.character(i))
     workplace_index_list[[i]] <- workplace_bitset_list[[i]]$to_vector()
     workplace_size_list[[i]] <- length(workplace_index_list[[i]])
   }
@@ -110,7 +135,9 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
   school_index_list <- vector(mode = "list", length = num_schools)
   school_size_list <- vector(mode = "list", length = num_schools)
   for (i in seq(num_schools)) {
-    school_bitset_list[[i]] <- variables_list$school$get_index_of(as.character(i))
+    school_bitset_list[[i]] <- variables_list$school$get_index_of(as.character(
+      i
+    ))
     school_index_list[[i]] <- school_bitset_list[[i]]$to_vector()
     school_size_list[[i]] <- length(school_index_list[[i]])
   }
@@ -120,45 +147,71 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
   num_leisure <- length(parameters_list$setting_sizes$leisure)
 
   # Create vector to store all the possible leisure visits
-  leisure_indvidual_possible_visits_list <- vector(mode = "list", length = parameters_list$human_population)
+  leisure_indvidual_possible_visits_list <- vector(
+    mode = "list",
+    length = parameters_list$human_population
+  )
   for (i in seq(parameters_list$human_population)) {
-    leisure_indvidual_possible_visits_list[[i]] <- unlist(variables_list$leisure$get_values(i))
+    leisure_indvidual_possible_visits_list[[
+      i
+    ]] <- unlist(variables_list$leisure$get_values(i))
   }
 
   ## Process Function
   function(t) {
-
     ## Bitset for all infectious individuals
     I <- variables_list$disease_state$get_index_of("I")
 
     #=== Household FOI ===#
     #=====================#
     # Open vector to store household FOIs experienced by each individual
-    household_FOI <- vector(mode = "numeric", length = parameters_list$human_population)
+    household_FOI <- vector(
+      mode = "numeric",
+      length = parameters_list$human_population
+    )
 
     # Calculate the household FOI for each individual (if HH size = 1, FOI = 0)
     for (i in seq(num_households)) {
-
       ## Only calculate FOI is household size is greater than 1
       if (household_size_list[[i]] > 1) {
-
         # Count the number of infectious individuals in the i-th household
-        spec_household_I_size <- individual:::bitset_count_and(I,  household_bitset_list[[i]])
+        spec_household_I_size <- individual:::bitset_count_and(
+          I,
+          household_bitset_list[[i]]
+        )
 
         #  Calculate the FOI for the i-th household - with and without farUVC installed
         if (parameters_list$far_uvc_household) {
-          if (parameters_list$uvc_household[i] == 1 & t > parameters_list$far_uvc_household_timestep) {
-            spec_household_FOI <- parameters_list$household_specific_riskiness[i] * (1 - parameters_list$far_uvc_household_efficacy) * (parameters_list$beta_household * spec_household_I_size / household_size_list[[i]])
+          if (
+            parameters_list$uvc_household[i] == 1 &
+              t > parameters_list$far_uvc_household_timestep
+          ) {
+            spec_household_FOI <- parameters_list$household_specific_riskiness[
+              i
+            ] *
+              (1 - parameters_list$far_uvc_household_efficacy) *
+              (parameters_list$beta_household *
+                spec_household_I_size /
+                household_size_list[[i]])
           } else {
-            spec_household_FOI <- parameters_list$household_specific_riskiness[i] * parameters_list$beta_household * spec_household_I_size / household_size_list[[i]]
+            spec_household_FOI <- parameters_list$household_specific_riskiness[
+              i
+            ] *
+              parameters_list$beta_household *
+              spec_household_I_size /
+              household_size_list[[i]]
           }
         } else {
-          spec_household_FOI <- parameters_list$household_specific_riskiness[i] * parameters_list$beta_household * spec_household_I_size / household_size_list[[i]]
+          spec_household_FOI <- parameters_list$household_specific_riskiness[
+            i
+          ] *
+            parameters_list$beta_household *
+            spec_household_I_size /
+            household_size_list[[i]]
         }
 
         # Assign the i-th households FOI to the indices of the individuals residing in that household
         household_FOI[household_index_list[[i]]] <- spec_household_FOI
-
       }
     }
 
@@ -166,23 +219,45 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
     #=====================#
 
     # Open an empty vector for the workplace FOI for each individual:
-    workplace_FOI <- vector(mode = "numeric", length = parameters_list$human_population)
+    workplace_FOI <- vector(
+      mode = "numeric",
+      length = parameters_list$human_population
+    )
 
     # For each workplace:
     for (i in seq(num_workplaces)) {
-
       # Count the number of infectious individuals in the i-th workplace
-      spec_workplace_I_size <- individual:::bitset_count_and(I,  workplace_bitset_list[[i]])
+      spec_workplace_I_size <- individual:::bitset_count_and(
+        I,
+        workplace_bitset_list[[i]]
+      )
 
       # Calculate the workplace-specific FOI of the i-th workplace - with and without farUVC installed
       if (parameters_list$far_uvc_workplace) {
-        if (parameters_list$uvc_workplace[i] == 1 & t > parameters_list$far_uvc_workplace_timestep) {
-          spec_workplace_FOI <- parameters_list$workplace_specific_riskiness[i] * (1 - parameters_list$far_uvc_workplace_efficacy) * (parameters_list$beta_workplace * spec_workplace_I_size / workplace_size_list[[i]])
+        if (
+          parameters_list$uvc_workplace[i] == 1 &
+            t > parameters_list$far_uvc_workplace_timestep
+        ) {
+          spec_workplace_FOI <- parameters_list$workplace_specific_riskiness[
+            i
+          ] *
+            (1 - parameters_list$far_uvc_workplace_efficacy) *
+            (parameters_list$beta_workplace *
+              spec_workplace_I_size /
+              workplace_size_list[[i]])
         } else {
-          spec_workplace_FOI <- parameters_list$workplace_specific_riskiness[i] * parameters_list$beta_workplace * spec_workplace_I_size  / workplace_size_list[[i]]
+          spec_workplace_FOI <- parameters_list$workplace_specific_riskiness[
+            i
+          ] *
+            parameters_list$beta_workplace *
+            spec_workplace_I_size /
+            workplace_size_list[[i]]
         }
       } else {
-        spec_workplace_FOI <- parameters_list$workplace_specific_riskiness[i] * parameters_list$beta_workplace * spec_workplace_I_size / workplace_size_list[[i]]
+        spec_workplace_FOI <- parameters_list$workplace_specific_riskiness[i] *
+          parameters_list$beta_workplace *
+          spec_workplace_I_size /
+          workplace_size_list[[i]]
       }
 
       # Store the workplace-specific FOR in the indices of all individuals that work there:
@@ -193,23 +268,41 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
     #==================#
 
     # Open empty vector to store each individuals school-specific FOI:
-    school_FOI <- vector(mode = "numeric", length = parameters_list$human_population)
+    school_FOI <- vector(
+      mode = "numeric",
+      length = parameters_list$human_population
+    )
 
     # For each school:
     for (i in seq(num_schools)) {
-
       # Count the number of infectious individuals in the i-th school
-      spec_school_I_size <- individual:::bitset_count_and(I,  school_bitset_list[[i]])
+      spec_school_I_size <- individual:::bitset_count_and(
+        I,
+        school_bitset_list[[i]]
+      )
 
       # Calculate the school-specific FOI for the i-th school - with and without farUVC installed
       if (parameters_list$far_uvc_school) {
-        if (parameters_list$uvc_school[i] == 1 & t > parameters_list$far_uvc_school_timestep) {
-          spec_school_FOI <- parameters_list$school_specific_riskiness[i] * (1 - parameters_list$far_uvc_school_efficacy) * (parameters_list$beta_school * spec_school_I_size / school_size_list[[i]])
+        if (
+          parameters_list$uvc_school[i] == 1 &
+            t > parameters_list$far_uvc_school_timestep
+        ) {
+          spec_school_FOI <- parameters_list$school_specific_riskiness[i] *
+            (1 - parameters_list$far_uvc_school_efficacy) *
+            (parameters_list$beta_school *
+              spec_school_I_size /
+              school_size_list[[i]])
         } else {
-          spec_school_FOI <- parameters_list$school_specific_riskiness[i] * parameters_list$beta_school * spec_school_I_size / school_size_list[[i]]
+          spec_school_FOI <- parameters_list$school_specific_riskiness[i] *
+            parameters_list$beta_school *
+            spec_school_I_size /
+            school_size_list[[i]]
         }
       } else {
-        spec_school_FOI <- parameters_list$school_specific_riskiness[i] * parameters_list$beta_school * spec_school_I_size / school_size_list[[i]]
+        spec_school_FOI <- parameters_list$school_specific_riskiness[i] *
+          parameters_list$beta_school *
+          spec_school_I_size /
+          school_size_list[[i]]
       }
 
       # Store the school-specific FOI at the indices of all children that attend it:
@@ -219,16 +312,18 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
     #=== Leisure FOI ===#
     #=====================#
     if ((t * parameters_list$dt) == floor((t * parameters_list$dt))) {
-
       # Creating vector to store which leisure location individuals visit on a given day
-      leisure_visit <- vector(mode = "numeric", length = parameters_list$human_population)
+      leisure_visit <- vector(
+        mode = "numeric",
+        length = parameters_list$human_population
+      )
 
       # For each individual, work out which leisure location they go to that particular day. 0 = they don't go to any
       for (i in seq(parameters_list$human_population)) {
-
         # Sampling which leisure location actually visited (0 = visit none and staying home) from the leisure locations individuals have associated with them (and could visit)
-        leisure_visit[i] <- leisure_indvidual_possible_visits_list[[i]][dqrng::dqsample.int(n = 7, size = 1)]
-
+        leisure_visit[i] <- leisure_indvidual_possible_visits_list[[
+          i
+        ]][dqrng::dqsample.int(n = 7, size = 1)]
       }
 
       # Updating the leisure setting visited that day
@@ -237,68 +332,91 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
       ## Also note that parameters_list$leisure_indices aren't 1:num_leisure as i) it includes 0 (no leisure visited); and
       ## 2) as part of the leisure variable creation in variables.R, some initially created leisure locations
       ##    don't feature in the RaggedInteger vector, and so these locations are removed as indices.
-      variables_list$specific_leisure$initialize(categories = as.character(parameters_list$leisure_indices),
-                                                 initial_values = as.character(leisure_visit)) #  update the states with leisure_visit for that day
+      variables_list$specific_leisure$initialize(
+        categories = as.character(parameters_list$leisure_indices),
+        initial_values = as.character(leisure_visit)
+      ) #  update the states with leisure_visit for that day
     }
 
     # Open empty vector to store each individuals leisure-specific FOI:
-    leisure_FOI <- vector(mode = "numeric", length = parameters_list$human_population)
+    leisure_FOI <- vector(
+      mode = "numeric",
+      length = parameters_list$human_population
+    )
 
     # Calculating leisure-specific FOI for each individual
     ## Note that we include all possible leisure locations as categories irrespective of whether they're visited on a particular day
     ## Doesn't affect the FOI calculation, as places with no visits on a day don't update the FOI vector (FOI is NaN which doesn't index in a vector)
     ## And note that we're specifically looping through the indices of each leisure locations (for reasons described above)
-    leisure_locations <-  variables_list$specific_leisure$get_categories()
+    leisure_locations <- variables_list$specific_leisure$get_categories()
     leisure_locations <- leisure_locations[leisure_locations != "0"] # removing the "0" category which is not visited
     for (i in 1:length(leisure_locations)) {
-
       # Access the index of the specific leisure locations being considered
       spec_leisure_location <- as.numeric(leisure_locations[i])
 
       # Only going through below steps if a leisure location is actually visited (i.e. != 0)
       if (spec_leisure_location != 0) {
-
         # Retrieve the indices of individuals visiting the specific leisure location
-        spec_leisure <- variables_list$specific_leisure$get_index_of(as.character(spec_leisure_location))
+        spec_leisure <- variables_list$specific_leisure$get_index_of(as.character(
+          spec_leisure_location
+        ))
 
         # Count the number of infectious individuals in the relevant leisure setting
-        spec_leisure_I_size <- individual:::bitset_count_and(I,  spec_leisure)
+        spec_leisure_I_size <- individual:::bitset_count_and(I, spec_leisure)
 
         # Calculate the leisure-specific FOI for the i-th leisure location - with and without farUVC installed
         ## Note that leisure_specific_riskiness uses indices 1:num_leisure to index the leisure locations
         ## (this is in contrast to leisure_indices, which uses the original indices from their generation,
         ##  and which span 1 to max(leisure_indices) with some gaps)
         if (parameters_list$far_uvc_leisure) {
-          if (parameters_list$uvc_leisure[i] == 1 & t > parameters_list$far_uvc_leisure_timestep) {
-            spec_leisure_FOI <- parameters_list$leisure_specific_riskiness[i] * (1 - parameters_list$far_uvc_leisure_efficacy) * (parameters_list$beta_leisure * spec_leisure_I_size / spec_leisure$size()) ## this calculation needs more in it
+          if (
+            parameters_list$uvc_leisure[i] == 1 &
+              t > parameters_list$far_uvc_leisure_timestep
+          ) {
+            spec_leisure_FOI <- parameters_list$leisure_specific_riskiness[i] *
+              (1 - parameters_list$far_uvc_leisure_efficacy) *
+              (parameters_list$beta_leisure *
+                spec_leisure_I_size /
+                spec_leisure$size()) ## this calculation needs more in it
           } else {
-            spec_leisure_FOI <- parameters_list$leisure_specific_riskiness[i] * parameters_list$beta_leisure * spec_leisure_I_size / spec_leisure$size() ## this calculation needs more in it
+            spec_leisure_FOI <- parameters_list$leisure_specific_riskiness[i] *
+              parameters_list$beta_leisure *
+              spec_leisure_I_size /
+              spec_leisure$size() ## this calculation needs more in it
           }
         } else {
-          spec_leisure_FOI <- parameters_list$leisure_specific_riskiness[i] * parameters_list$beta_leisure * spec_leisure_I_size / spec_leisure$size() ## this calculation needs more in it
+          spec_leisure_FOI <- parameters_list$leisure_specific_riskiness[i] *
+            parameters_list$beta_leisure *
+            spec_leisure_I_size /
+            spec_leisure$size() ## this calculation needs more in it
         }
 
         # Store the leisure location-specific FOI at the indices of all individuals that attend it:
         leisure_FOI[spec_leisure$to_vector()] <- spec_leisure_FOI
       }
-
     }
 
     #=== Community FOI ===#
     #=====================#
     ### Calculate Community FOI (real-valued for all individuals)
     #### NOTE: Double check whether the "/N" is correct here - not sure currently
-    community_FOI <- parameters_list$beta_community * variables_list$disease_state$get_size_of("I") / parameters_list$human_population
+    community_FOI <- parameters_list$beta_community *
+      variables_list$disease_state$get_size_of("I") /
+      parameters_list$human_population
 
     #=== Total FOI ===#
     #=================#
 
     # Sum the household, workplace, school leisure, and community FOIs to get the total FOI for each
     # individual:
-    total_FOI <- household_FOI + workplace_FOI + school_FOI + leisure_FOI + community_FOI
+    total_FOI <- household_FOI +
+      workplace_FOI +
+      school_FOI +
+      leisure_FOI +
+      community_FOI
 
     # Render the setting-specific FOIs is diagnostic rendering turned on:
-    if(parameters_list$render_diagnostics) {
+    if (parameters_list$render_diagnostics) {
       renderer$render('FOI_household', max(household_FOI), t)
       renderer$render('FOI_workplace', max(workplace_FOI), t)
       renderer$render('FOI_school', max(school_FOI), t)
@@ -323,8 +441,7 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
     renderer$render('E_new', S$size(), t)
 
     # Queue an update to the infectious state of the newly infected susceptible individuals to Exposed:
-    variables_list$disease_state$queue_update(value = "E",index = S)
-
+    variables_list$disease_state$queue_update(value = "E", index = S)
   }
 }
 
@@ -335,10 +452,8 @@ create_SE_process <- function(variables_list, events_list, parameters_list, rend
 #'
 #' @family processes
 #' @export
-create_EI_process <- function(variables_list, events_list, parameters_list){
-
+create_EI_process <- function(variables_list, events_list, parameters_list) {
   function(t) {
-
     # Get the indices of all exposed individuals:
     E <- variables_list$disease_state$get_index_of("E")
 
@@ -349,11 +464,18 @@ create_EI_process <- function(variables_list, events_list, parameters_list){
     E$and(EI_already_scheduled$not(inplace = TRUE))
 
     # Calculate the delay until each exposed individual without a delay transitions to infected:
-    I_times <- round((rgamma(n = E$size(), shape = 2, rate = 2 / parameters_list$duration_exposed) + 1) / parameters_list$dt)
+    I_times <- round(
+      (rgamma(
+        n = E$size(),
+        shape = 2,
+        rate = 2 / parameters_list$duration_exposed
+      ) +
+        1) /
+        parameters_list$dt
+    )
 
     # Schedule the new transitions from exposed to infected:
     events_list$EI_event$schedule(target = E, delay = I_times)
-
   }
 }
 
@@ -364,9 +486,7 @@ create_EI_process <- function(variables_list, events_list, parameters_list){
 #' @family processes
 #' @export
 create_IR_process <- function(variables_list, events_list, parameters_list) {
-
-  function(t){
-
+  function(t) {
     # Get the indices of currently infectious individuals:
     I <- variables_list$disease_state$get_index_of("I")
 
@@ -377,11 +497,18 @@ create_IR_process <- function(variables_list, events_list, parameters_list) {
     I$and(IR_already_scheduled$not(inplace = TRUE))
 
     # Calculate recovery times for infectious individuals without transitions scheduled:
-    R_times <- round((rgamma(n = I$size(), shape = 2, rate = 2 / parameters_list$duration_infectious) + 1) / parameters_list$dt)
+    R_times <- round(
+      (rgamma(
+        n = I$size(),
+        shape = 2,
+        rate = 2 / parameters_list$duration_infectious
+      ) +
+        1) /
+        parameters_list$dt
+    )
 
     # Schedule the recovery events for infectious individuals without transitions scheduled:
     events_list$IR_event$schedule(target = I, delay = R_times)
-
   }
 }
 
@@ -392,9 +519,7 @@ create_IR_process <- function(variables_list, events_list, parameters_list) {
 #' @family processes
 #' @export
 create_RS_process <- function(variables_list, events_list, parameters_list) {
-
-  function(t){
-
+  function(t) {
     # Get the indices of currently recovered and immune individuals:
     R <- variables_list$disease_state$get_index_of("R")
 
@@ -405,11 +530,17 @@ create_RS_process <- function(variables_list, events_list, parameters_list) {
     R$and(RS_already_scheduled$not(inplace = TRUE))
 
     # Calculate recovery times for infectious individuals without transitions scheduled:
-    S_times <- round(rgamma(n = R$size(), shape = 1, rate = 1 / parameters_list$duration_immune) / parameters_list$dt)
+    S_times <- round(
+      rgamma(
+        n = R$size(),
+        shape = 1,
+        rate = 1 / parameters_list$duration_immune
+      ) /
+        parameters_list$dt
+    )
 
     # Schedule the recovery events for infectious individuals without transitions scheduled:
     events_list$RS_event$schedule(target = R, delay = S_times)
-
   }
 }
 
@@ -419,15 +550,19 @@ create_RS_process <- function(variables_list, events_list, parameters_list) {
 #'
 #' @family processes
 #' @export
-create_external_source_process <- function(variables_list, events_list, parameters_list, renderer){
-
+create_external_source_process <- function(
+  variables_list,
+  events_list,
+  parameters_list,
+  renderer
+) {
   function(t) {
-
     # Get the indices of all susceptible individuals:
     S_endemic <- variables_list$disease_state$get_index_of("S")
 
     # Calculate the probability of getting infected in the current interval for each individual:
-    p_inf_ext <- 1 - exp(-parameters_list$prob_inf_external * parameters_list$dt)
+    p_inf_ext <- 1 -
+      exp(-parameters_list$prob_inf_external * parameters_list$dt)
 
     # Sample susceptible individuals using their infection probability to determine who gets infected:
     S_endemic$sample(rate = p_inf_ext)
@@ -437,6 +572,5 @@ create_external_source_process <- function(variables_list, events_list, paramete
 
     # Render the number of individuals infected through the external mechanism
     renderer$render('n_external_infections', S_endemic$size(), t)
-
   }
 }

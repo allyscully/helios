@@ -3,11 +3,11 @@ library(EnvStats)
 
 # Calculating steady state without farUVC in place and using pi of viruses per hour per person
 ### 30 room occupants, 10% infected, per Blatchley presentation
-I <- 3               ## number of infectious people in room
-pi <- 10^5           ## per capita virus emission rate
+I <- 3 ## number of infectious people in room
+pi <- 10^5 ## per capita virus emission rate
 room_vol <- 500
-A <- 0.59            ## air changes per hour
-kD <- 0.41           ## natural decay constant
+A <- 0.59 ## air changes per hour
+kD <- 0.41 ## natural decay constant
 alpha <- A + kD
 Css <- (I * pi) / (alpha * room_vol)
 Css
@@ -16,11 +16,11 @@ Css
 ### They then define
 # "r" for FFU is 1.26*10-2 i.e. probability that a single FFU will cause infection
 # so then question becomes what the steady state of FFUs are - quotes FFU per hour (i.e. pi) of 29
-I <- 1               ## number of infectious people in room
-pi <- 27             ## per capita virus emission rate
+I <- 1 ## number of infectious people in room
+pi <- 27 ## per capita virus emission rate
 room_vol <- 500
-A <- 0.3             ## air changes per hour
-kD <- 0.64           ## natural decay constant
+A <- 0.3 ## air changes per hour
+kD <- 0.64 ## natural decay constant
 alpha <- A + kD
 Css <- (I * pi) / (alpha * room_vol)
 Css
@@ -36,17 +36,17 @@ plot(time, log10(p_inf), ylim = c(-5, 0))
 ### Sensitivity Analysis examining how variation in air-changes per hour
 ### influences riskiness of a room
 
-
 ## do this for 0.1%, 0.5%, 1% and 2.5% infection prevalence
 infection_prevalence <- c(0.0001, 0.0005, 0.001, 0.0025)
 setting_sizes <- 100
 
 schools_density <- 100 / 30 # number of m2 per classroom child
 schools_range <- seq(0.1, 3, length.out = 30)
-schools_matrix <- array(dim = c(length(schools_range), length(infection_prevalence), 4))
+schools_matrix <- array(
+  dim = c(length(schools_range), length(infection_prevalence), 4)
+)
 for (i in 1:length(schools_range)) {
   for (j in 1:length(infection_prevalence)) {
-
     ## Calculating the steady state concentration of virus
     I <- setting_sizes * infection_prevalence[j]
     room_height <- 3
@@ -75,28 +75,48 @@ par(mfrow = c(3, 4))
 for (i in 1:4) {
   for (j in 1:30) {
     if (j == 1) {
-      plot(c(2, 4, 6, 8), schools_matrix[j, i, ], type = "l", xlab = "time", ylab = "p_inf",
-           ylim = c(1e-8, 5e-4), col = colours[i])
+      plot(
+        c(2, 4, 6, 8),
+        schools_matrix[j, i, ],
+        type = "l",
+        xlab = "time",
+        ylab = "p_inf",
+        ylim = c(1e-8, 5e-4),
+        col = colours[i]
+      )
     } else {
-      lines(c(2, 4, 6, 8), schools_matrix[j, i, ], type = "l", col  = colours[i])
+      lines(c(2, 4, 6, 8), schools_matrix[j, i, ], type = "l", col = colours[i])
     }
   }
 }
 for (i in 1:4) {
   for (j in 1:30) {
     if (j == 1) {
-      plot(c(2, 4, 6, 8), schools_matrix[j, i, ], type = "l", xlab = "time", ylab = "p_inf",
-           ylim = c(0, max(schools_matrix[, i, ])), col = colours[i])
+      plot(
+        c(2, 4, 6, 8),
+        schools_matrix[j, i, ],
+        type = "l",
+        xlab = "time",
+        ylab = "p_inf",
+        ylim = c(0, max(schools_matrix[, i, ])),
+        col = colours[i]
+      )
     } else {
-      lines(c(2, 4, 6, 8), schools_matrix[j, i, ], type = "l", col  = colours[i])
+      lines(c(2, 4, 6, 8), schools_matrix[j, i, ], type = "l", col = colours[i])
     }
   }
 }
 for (i in 1:4) {
-  plot(c(2, 4, 6, 8), schools_matrix[1, i, ] / schools_matrix[30, i, ], type = "l", xlab = "time", ylab = "p_inf",
-       ylim = c(0, max(schools_matrix[1, i, ] / schools_matrix[30, i, ])), col = colours[i])
+  plot(
+    c(2, 4, 6, 8),
+    schools_matrix[1, i, ] / schools_matrix[30, i, ],
+    type = "l",
+    xlab = "time",
+    ylab = "p_inf",
+    ylim = c(0, max(schools_matrix[1, i, ] / schools_matrix[30, i, ])),
+    col = colours[i]
+  )
 }
-
 
 
 # ventilation rate * setting size * infection prevalence * time spent
@@ -110,7 +130,6 @@ ratios <- apply(schools_matrix, c(2, 3), function(x) {
 })
 
 
-
 # school_min <- 0.1
 # school_max <- 2.9
 # school_mean <- 0.8
@@ -122,9 +141,8 @@ workplace_range <- seq(0.2, 5, 0.1)
 # workplace_median <- 0.98
 # workplace_mean <- 2.00
 
-leisure_density <- 100 /50
+leisure_density <- 100 / 50
 leisure_range <- seq(1, 10, 0.1)
 # leisure_min <- 0.7
 # leisure_max <- 8.5
 # leisure_mean <- 3.8
-

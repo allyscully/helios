@@ -58,11 +58,13 @@ far_uvc_efficacy <- seq(0.4, 0.8, 0.2)
 iterations <- 1:9
 
 # Set up the unique simulations to run
-simulations_to_run <- expand.grid("riskiness" = riskiness,
-                                  "archetype" = archetypes,
-                                  "coverage" = far_uvc_coverage,
-                                  "efficacy" = far_uvc_efficacy,
-                                  "iteration" = iterations)
+simulations_to_run <- expand.grid(
+  "riskiness" = riskiness,
+  "archetype" = archetypes,
+  "coverage" = far_uvc_coverage,
+  "efficacy" = far_uvc_efficacy,
+  "iteration" = iterations
+)
 
 # Append a column for simulation ID:
 simulations_to_run$ID <- 1:nrow(simulations_to_run)
@@ -77,103 +79,131 @@ head(simulations_to_run)
 parameter_lists <- list()
 
 # Set up the simulation parameter lists for each row of the simulations_to_run dataframe:
-for(i in 1:nrow(simulations_to_run)) {
-
+for (i in 1:nrow(simulations_to_run)) {
   # Set up the parameters list:
   if (simulations_to_run$archetype[i] == "sars_cov_2") {
-
     ## Setting up initial conditions (approx endemic equilibrium solution for R0 2.5 pathogen)
     initial_S_SC2 <- round(0.4 * human_population)
     initial_E_SC2 <- round(0.01 * human_population)
     initial_I_SC2 <- round(0.02 * human_population)
-    initial_R_SC2 <- human_population - initial_S_SC2 - initial_E_SC2 - initial_I_SC2
-    parameter_lists[[i]] <- get_parameters(archetype = simulations_to_run$archetype[i],
-                                           overrides = list(
-                                             human_population = human_population,
-                                             number_initial_S = initial_S_SC2,
-                                             number_initial_E = initial_E_SC2,
-                                             number_initial_I = initial_I_SC2,
-                                             number_initial_R = initial_R_SC2,
-                                             endemic_or_epidemic = "endemic",
-                                             duration_immune = duration_of_immunity,
-                                             prob_inf_external = external_infection_probability,
-                                             simulation_time = simulation_time_days))
-
+    initial_R_SC2 <- human_population -
+      initial_S_SC2 -
+      initial_E_SC2 -
+      initial_I_SC2
+    parameter_lists[[i]] <- get_parameters(
+      archetype = simulations_to_run$archetype[i],
+      overrides = list(
+        human_population = human_population,
+        number_initial_S = initial_S_SC2,
+        number_initial_E = initial_E_SC2,
+        number_initial_I = initial_I_SC2,
+        number_initial_R = initial_R_SC2,
+        endemic_or_epidemic = "endemic",
+        duration_immune = duration_of_immunity,
+        prob_inf_external = external_infection_probability,
+        simulation_time = simulation_time_days
+      )
+    )
   } else if (simulations_to_run$archetype[i] == "flu") {
-
     ## Setting up initial conditions (approx endemic equilibrium solution for R0 1.5 pathogen)
     initial_S_flu <- round(0.67 * human_population)
     initial_E_flu <- round(0.006 * human_population)
     initial_I_flu <- round(0.012 * human_population)
-    initial_R_flu <- human_population - initial_S_flu - initial_E_flu - initial_I_flu
-    parameter_lists[[i]] <- get_parameters(archetype = simulations_to_run$archetype[i],
-                                           overrides = list(
-                                             human_population = human_population,
-                                             number_initial_S = initial_S_flu,
-                                             number_initial_E = initial_E_flu,
-                                             number_initial_I = initial_I_flu,
-                                             number_initial_R = initial_R_flu,
-                                             endemic_or_epidemic = "endemic",
-                                             duration_immune = duration_of_immunity,
-                                             prob_inf_external = external_infection_probability,
-                                             simulation_time = simulation_time_days))
+    initial_R_flu <- human_population -
+      initial_S_flu -
+      initial_E_flu -
+      initial_I_flu
+    parameter_lists[[i]] <- get_parameters(
+      archetype = simulations_to_run$archetype[i],
+      overrides = list(
+        human_population = human_population,
+        number_initial_S = initial_S_flu,
+        number_initial_E = initial_E_flu,
+        number_initial_I = initial_I_flu,
+        number_initial_R = initial_R_flu,
+        endemic_or_epidemic = "endemic",
+        duration_immune = duration_of_immunity,
+        prob_inf_external = external_infection_probability,
+        simulation_time = simulation_time_days
+      )
+    )
   } else {
     stop("something's gone wrong withspecifying archetype")
   }
 
-
-
   # If coverage is greater than 0 append the far UVC parameters:
-  timestep_uvc_on <- round(((years_to_simulate - 2) * 365) / parameter_lists[[i]]$dt) # note this is in timesteps not days
-  if(simulations_to_run$coverage[i] > 0) {
+  timestep_uvc_on <- round(
+    ((years_to_simulate - 2) * 365) / parameter_lists[[i]]$dt
+  ) # note this is in timesteps not days
+  if (simulations_to_run$coverage[i] > 0) {
     parameter_lists[[i]] |>
-      set_uvc(setting = "school",
-              coverage = simulations_to_run$coverage[i],
-              coverage_target = "buildings",
-              coverage_type = "random",
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = timestep_uvc_on) |>
-      set_uvc(setting = "workplace",
-              coverage = simulations_to_run$coverage[i],
-              coverage_target = "buildings",
-              coverage_type = "random",
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = timestep_uvc_on) |>
-      set_uvc(setting = "leisure",
-              coverage = simulations_to_run$coverage[i],
-              coverage_target = "buildings",
-              coverage_type = "random",
-              efficacy = simulations_to_run$efficacy[i],
-              timestep = timestep_uvc_on) -> parameter_lists[[i]]
+      set_uvc(
+        setting = "school",
+        coverage = simulations_to_run$coverage[i],
+        coverage_target = "buildings",
+        coverage_type = "random",
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = timestep_uvc_on
+      ) |>
+      set_uvc(
+        setting = "workplace",
+        coverage = simulations_to_run$coverage[i],
+        coverage_target = "buildings",
+        coverage_type = "random",
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = timestep_uvc_on
+      ) |>
+      set_uvc(
+        setting = "leisure",
+        coverage = simulations_to_run$coverage[i],
+        coverage_target = "buildings",
+        coverage_type = "random",
+        efficacy = simulations_to_run$efficacy[i],
+        timestep = timestep_uvc_on
+      ) -> parameter_lists[[i]]
   }
 
   # If setting-specific-riskiness is parameterised, append the setting-specific riskiness parameters:
-  if(simulations_to_run$riskiness[i] == "setting_specific_riskiness") {
+  if (simulations_to_run$riskiness[i] == "setting_specific_riskiness") {
     parameter_lists[[i]] |>
-      set_setting_specific_riskiness(setting = "school",
-                                     mean = 0,
-                                     sd = 0.3544,
-                                     min = 1/sqrt(4.75),
-                                     max = sqrt(4.75)) |>
-      set_setting_specific_riskiness(setting = "workplace",
-                                     mean = 0,
-                                     sd = 0.5072,
-                                     min = 1/sqrt(6.35),
-                                     max = sqrt(6.35)) |>
-      set_setting_specific_riskiness(setting = "household",
-                                     mean = 0,
-                                     sd = 0.0871,
-                                     min = 1/sqrt(2.5),
-                                     max = sqrt(2.5)) |>
-      set_setting_specific_riskiness(setting = "leisure",
-                                     mean = 0,
-                                     sd = 0.4278,
-                                     min = 1/sqrt(5.5),
-                                     max = sqrt(5.5)) -> parameter_lists[[i]]
+      set_setting_specific_riskiness(
+        setting = "school",
+        mean = 0,
+        sd = 0.3544,
+        min = 1 / sqrt(4.75),
+        max = sqrt(4.75)
+      ) |>
+      set_setting_specific_riskiness(
+        setting = "workplace",
+        mean = 0,
+        sd = 0.5072,
+        min = 1 / sqrt(6.35),
+        max = sqrt(6.35)
+      ) |>
+      set_setting_specific_riskiness(
+        setting = "household",
+        mean = 0,
+        sd = 0.0871,
+        min = 1 / sqrt(2.5),
+        max = sqrt(2.5)
+      ) |>
+      set_setting_specific_riskiness(
+        setting = "leisure",
+        mean = 0,
+        sd = 0.4278,
+        min = 1 / sqrt(5.5),
+        max = sqrt(5.5)
+      ) -> parameter_lists[[i]]
   }
 }
-saveRDS(simulations_to_run, file = "./inst/blueprint_output_2_July2024/simulations_to_run.rds")
-saveRDS(parameter_lists, file = "./inst/blueprint_output_2_July2024/parameter_lists.rds")
+saveRDS(
+  simulations_to_run,
+  file = "./inst/blueprint_output_2_July2024/simulations_to_run.rds"
+)
+saveRDS(
+  parameter_lists,
+  file = "./inst/blueprint_output_2_July2024/parameter_lists.rds"
+)
 
 #----- 3) Simulation Runs --------------------------------------------------------------------------
 
@@ -227,7 +257,10 @@ results1 <- mclapply(1:41, mc.cores = num_cores, function(i) {
 })
 toc()
 Sys.sleep(45)
-saveRDS(object = results1, file = "./inst/blueprint_output_2_July2024/raw_outputs_results1.rds")
+saveRDS(
+  object = results1,
+  file = "./inst/blueprint_output_2_July2024/raw_outputs_results1.rds"
+)
 Sys.sleep(15)
 
 tic()
@@ -238,7 +271,10 @@ results2 <- mclapply(42:82, mc.cores = num_cores, function(i) {
 })
 toc()
 Sys.sleep(45)
-saveRDS(object = results2, file = "./inst/blueprint_output_2_July2024/raw_outputs_results2.rds")
+saveRDS(
+  object = results2,
+  file = "./inst/blueprint_output_2_July2024/raw_outputs_results2.rds"
+)
 Sys.sleep(15)
 
 tic()
@@ -249,7 +285,10 @@ results3 <- mclapply(83:123, mc.cores = num_cores, function(i) {
 })
 toc()
 Sys.sleep(45)
-saveRDS(object = results3, file = "./inst/blueprint_output_2_July2024/raw_outputs_results3.rds")
+saveRDS(
+  object = results3,
+  file = "./inst/blueprint_output_2_July2024/raw_outputs_results3.rds"
+)
 Sys.sleep(15)
 
 tic()
@@ -260,7 +299,10 @@ results4 <- mclapply(124:162, mc.cores = num_cores, function(i) {
 })
 toc()
 Sys.sleep(45)
-saveRDS(object = results4, file = "./inst/blueprint_output_2_July2024/raw_outputs_results4.rds")
+saveRDS(
+  object = results4,
+  file = "./inst/blueprint_output_2_July2024/raw_outputs_results4.rds"
+)
 Sys.sleep(15)
 
 ## make sure we also save and return the dt and years to simulate and when UVC is started somehow
@@ -281,20 +323,27 @@ lines(x$timestep, x$R_count, col = "purple")
 
 # Combine the simulation outputs into a combined data frame:
 combined_parameter_sweep_outputs <- data.frame()
-for(i in 1:length(simulation_outputs)) {
-  combined_parameter_sweep_outputs <- dplyr::bind_rows(combined_parameter_sweep_outputs, results[[i]])
+for (i in 1:length(simulation_outputs)) {
+  combined_parameter_sweep_outputs <- dplyr::bind_rows(
+    combined_parameter_sweep_outputs,
+    results[[i]]
+  )
 }
 
 # Convert the dataframe to long form
 combined_parameter_sweep_outputs %>%
   mutate(total_count = S_count + E_count + I_count + R_count) %>%
-  mutate(S = S_count/total_count,
-         E = E_count/total_count,
-         I = I_count/total_count,
-         R = R_count/total_count) %>%
-  pivot_longer(cols = c(S, E, I, R),
-               names_to = "Disease_State",
-               values_to = "Proportion") -> combined_parameter_sweep_outputs_long
+  mutate(
+    S = S_count / total_count,
+    E = E_count / total_count,
+    I = I_count / total_count,
+    R = R_count / total_count
+  ) %>%
+  pivot_longer(
+    cols = c(S, E, I, R),
+    names_to = "Disease_State",
+    values_to = "Proportion"
+  ) -> combined_parameter_sweep_outputs_long
 
 # Save the long-form dataframe:
 #saveRDS(object = combined_parameter_sweep_outputs_long, file = "./inst/blueprint_output_2_July2024/example_longform_output.rds")

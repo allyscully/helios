@@ -10,7 +10,12 @@
 #'
 #' @family sampling
 #' @export
-sample_offset_truncated_power_distribution <- function(N, prop_max = 0.1, a = 5.36, c = 1.34) {
+sample_offset_truncated_power_distribution <- function(
+  N,
+  prop_max = 0.1,
+  a = 5.36,
+  c = 1.34
+) {
   if (prop_max <= 0 | prop_max > 1) {
     stop("prop_max should be in (0, 1]")
   }
@@ -25,7 +30,7 @@ sample_offset_truncated_power_distribution <- function(N, prop_max = 0.1, a = 5.
   samples <- c()
   remaining <- N
 
-  while(remaining > 0) {
+  while (remaining > 0) {
     u <- runif(1)
     diff <- abs(cdf - u)
     draw <- m[which(diff == min(diff))]
@@ -33,7 +38,7 @@ sample_offset_truncated_power_distribution <- function(N, prop_max = 0.1, a = 5.
     remaining <- remaining - draw
   }
 
-  if(sum(samples) >= N) {
+  if (sum(samples) >= N) {
     samples[length(samples)] <- samples[length(samples)] - (sum(samples) - N)
   }
 
@@ -64,7 +69,7 @@ sample_log_normal <- function(N, prop_max = 0.1, meanlog, sdlog) {
   samples <- c()
   remaining <- N
 
-  while(remaining > 0) {
+  while (remaining > 0) {
     draw <- round(rlnorm(n = 1, meanlog = meanlog, sdlog = sdlog))
     if (draw < max) {
       samples <- c(samples, draw)
@@ -72,7 +77,7 @@ sample_log_normal <- function(N, prop_max = 0.1, meanlog, sdlog) {
     }
   }
 
-  if(sum(samples) >= N) {
+  if (sum(samples) >= N) {
     samples[length(samples)] <- samples[length(samples)] - (sum(samples) - N)
   }
 
@@ -106,7 +111,7 @@ sample_negbinom <- function(N, prop_max = 0.1, mu, size) {
   samples <- c()
   remaining <- N
 
-  while(remaining > 0) {
+  while (remaining > 0) {
     draw <- round(rnbinom(n = 1, mu = mu, size = size))
     if (draw < max) {
       samples <- c(samples, draw)
@@ -114,7 +119,7 @@ sample_negbinom <- function(N, prop_max = 0.1, mu, size) {
     }
   }
 
-  if(sum(samples) >= N) {
+  if (sum(samples) >= N) {
     samples[length(samples)] <- samples[length(samples)] - (sum(samples) - N)
   }
 
