@@ -5,11 +5,18 @@
 #'
 #' @family model
 #' @export
-run_simulation <- function(parameters_list) {
+run_simulation <- function(parameters_list, state = NULL) {
+
+  # Set the seed from the parameter list:
+  if (!("seed" %in% names(parameters_list))) {
+    stop("parameters list must contain a variable called seed")
+  }
+  set.seed(parameters_list$seed)
+
   # Generate the model variables:
   variables_list <- create_variables(parameters_list)
-  parameters_list <- variables_list$parameters_list # note: this could be written more nicely and in a way
-  variables_list <- variables_list$variables_list #       that doesn't require recursive modification
+  parameters_list <- variables_list$parameters_list  # note: this could be written more nicely and in a way
+  variables_list <- variables_list$variables_list    #       that doesn't require recursive modification
 
   # Generate the model events:
   events_list <- create_events(
@@ -34,7 +41,8 @@ run_simulation <- function(parameters_list) {
     variables = variables_list,
     events = unlist(events_list),
     processes = processes_list,
-    timesteps = timesteps
+    timesteps = timesteps,
+    state = state
   )
   renderer$to_dataframe()
 }
