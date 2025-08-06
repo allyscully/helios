@@ -99,6 +99,12 @@ generate_setting_specific_riskinesses <- function(
 
   # If setting-specific riskiness is switched on for the specified setting type, calculate setting-specific
   # riskiness values for each location within the setting using the rlnormTrunc() function:
+  # Set the seed from the parameter list:
+  if (!("seed" %in% names(parameters_list))) {
+    stop("parameters list must contain a variable called seed")
+  }
+  set.seed(parameters_list$seed)
+
   if (parameters_list[[paste0("setting_specific_riskiness_", setting)]]) {
     setting_specific_riskiness <- EnvStats::rlnormTrunc(
       n = number_of_locations,
