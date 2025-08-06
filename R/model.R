@@ -37,14 +37,14 @@ run_simulation <- function(parameters_list, state = NULL) {
   )
 
   # Use individual::simulation_loop() to run the model for the specified number of timesteps
-  individual::simulation_loop(
+  final_state <- individual::simulation_loop(
     variables = variables_list,
     events = unlist(events_list),
     processes = processes_list,
     timesteps = timesteps,
     state = state
   )
-  renderer$to_dataframe()
+  list(result = renderer$to_dataframe(), state = final_state)
 }
 
 #' Run helios simulations using table of parameter values
