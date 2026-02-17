@@ -5,15 +5,6 @@
 #' @family variables
 #' @export
 create_variables <- function(parameters_list) {
-
-  # Checking parameters list contains seed
-  if (!("seed" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called seed")
-  }
-
-  # Set the seed from the parameter list:
-  set.seed(parameters_list$seed)
-
   # Disease state variable
   disease_states <- c("S", "E", "I", "R")
   initial_disease_states <- generate_initial_disease_states(

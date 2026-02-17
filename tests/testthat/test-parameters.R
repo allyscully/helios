@@ -130,7 +130,7 @@ test_that("run_simulation() works when a parameter archetype specified", {
   )
 
   # Run the simulation:
-  simulation_example <- run_simulation(parameters_list = parameters_list)
+  simulation_example <- run_simulation(parameters_list = parameters_list)$result
 
   # Check that the output contains some expected column names and that it is a data.frame:
   expect_true(all(

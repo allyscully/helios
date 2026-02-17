@@ -152,13 +152,6 @@ generate_far_uvc_switches <- function(parameters_list, variables_list) {
 #' @family intervention
 #' @export
 generate_joint_far_uvc_switches <- function(parameters_list, variables_list) {
-
-  # Set the seed from the parameter list:
-  if (!("seed" %in% names(parameters_list))) {
-    stop("parameters list must contain a variable called seed")
-  }
-  set.seed(parameters_list$seed)
-
   # Defining how coverage is defined (i.e. based on the number of individuals a location holds, or its square footage)
   if (parameters_list[["far_uvc_joint_coverage_target"]] == "individuals") {
     ## based on number of individuals
