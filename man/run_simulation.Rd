@@ -17,9 +17,48 @@ run (not the absolute end time). Default is \code{NULL} (start fresh).}
 \value{
 A list with two elements:
 \describe{
-\item{result}{A data frame of simulation outputs.}
+\item{result}{A data frame of simulation outputs with one row per
+timestep. The columns are described below.}
 \item{state}{The final simulation state, which can be passed to a subsequent
 call to resume the simulation.}
+}
+
+The \code{result} data frame always contains the following columns:
+\itemize{
+\item \code{timestep}: The simulation timestep index.
+\item \code{S_count}: The number of individuals in the Susceptible
+disease state.
+\item \code{E_count}: The number of individuals in the Exposed (infected
+but not yet infectious) disease state.
+\item \code{I_count}: The number of individuals in the Infectious
+disease state.
+\item \code{R_count}: The number of individuals in the Recovered
+(immune) disease state.
+\item \code{E_new}: The number of individuals newly transitioning from
+Susceptible to Exposed (i.e. new infections) at each timestep.
+}
+
+When \code{endemic_or_epidemic = "endemic"}, an additional column is included:
+\itemize{
+\item \code{n_external_infections}: The number of susceptible individuals
+infected via the external/background infection source at each timestep.
+}
+
+When \code{render_diagnostics = TRUE}, additional diagnostic columns are
+included:
+\itemize{
+\item \code{FOI_household}: The maximum force of infection from household
+contacts across all individuals at each timestep.
+\item \code{FOI_workplace}: The maximum force of infection from workplace
+contacts across all individuals at each timestep.
+\item \code{FOI_school}: The maximum force of infection from school
+contacts across all individuals at each timestep.
+\item \code{FOI_leisure}: The maximum force of infection from leisure
+setting contacts across all individuals at each timestep.
+\item \code{FOI_community}: The community-level force of infection
+(derived from global prevalence) at each timestep.
+\item \code{FOI_total}: The maximum total force of infection (sum across
+all settings) experienced by any individual at each timestep.
 }
 }
 \description{
