@@ -3,7 +3,7 @@
 library(dplyr)
 library(ggplot2)
 
-# Run 1B: Direct riskiness + UVC 50% efficacy/coverage (run on MAIN BRANCH)
+# Direct riskiness + UVC 50% efficacy/coverage
 devtools::load_all()
 
 # Setup base parameters
@@ -27,20 +27,18 @@ output_1b <- base_params %>%
   set_setting_specific_riskiness("leisure",   mean = 0, sd = 0.37, min = 0.4472, max = 2.236) %>%
   set_setting_specific_riskiness("household", mean = 0, sd = 0.37, min = 0.4472, max = 2.236) %>%
   set_uvc("workplace", coverage = 0.5, coverage_target = "square_footage",
-          coverage_type = "random", efficacy = 0.5, timestep = 0) %>%
+          coverage_type = "targeted_riskiness", efficacy = 0.5, timestep = 0) %>%
   set_uvc("school",    coverage = 0.5, coverage_target = "square_footage",
-          coverage_type = "random", efficacy = 0.5, timestep = 0) %>%
+          coverage_type = "targeted_riskiness", efficacy = 0.5, timestep = 0) %>%
   set_uvc("leisure",   coverage = 0.5, coverage_target = "square_footage",
-          coverage_type = "random", efficacy = 0.5, timestep = 0) %>%
+          coverage_type = "targeted_riskiness", efficacy = 0.5, timestep = 0) %>%
   set_uvc("household", coverage = 0.5, coverage_target = "square_footage",
-          coverage_type = "random", efficacy = 0.5, timestep = 0) %>%
+          coverage_type = "targeted_riskiness", efficacy = 0.5, timestep = 0) %>%
   run_simulation()
 
 # Extract result data frame
 output_df_1b <- as.data.frame(output_1b$result)
 
-# Save for comparison
-# Print key metrics
 cat("\n=== KEY METRICS - Run 1B (Direct riskiness + UVC 50% efficacy/coverage) ===\n")
 cat("Peak infections:", max(output_df_1b$I_count),
     "at timestep", which.max(output_df_1b$I_count), "\n")
@@ -74,7 +72,7 @@ output_df_1b %>%
     )
   ) +
   labs(
-    title = "Epidemic |  Direct Riskiness | UVC (50% efficacy, 50% coverage)",
+    title = "Epidemic |  Direct Riskiness | targeted UVC (50% efficacy, 50% coverage)",
     x     = "Timestep",
     y     = "Number of individuals",
     color = "Compartment"
