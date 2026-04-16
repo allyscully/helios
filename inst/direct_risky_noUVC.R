@@ -6,9 +6,9 @@ devtools::load_all()
 
 base_params <- get_parameters(
   overrides = list(
-    human_population = 10000,
-    number_initial_S = 9990,
-    number_initial_E = 10,
+    human_population = 10000*25,
+    number_initial_S = 9990*25,
+    number_initial_E = 10*25,
     number_initial_I = 0,
     number_initial_R = 0,
     simulation_time  = 150,
