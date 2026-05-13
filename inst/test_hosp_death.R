@@ -1,65 +1,48 @@
-library(dplyr)
-library(ggplot2)
+## Quick smoke test for hospitalization & death implementation
+## Run from the helios project root.
 
-# 1. Prepare the first dataset (Direct Riskiness)
-riskiness_data <- data.frame(
-  setting = c(
-    rep("Workplace", length(params_with_riskiness$workplace_specific_riskiness)),
-    rep("School", length(params_with_riskiness$school_specific_riskiness)),
-    rep("Leisure", length(params_with_riskiness$leisure_specific_riskiness)),
-    rep("Household", length(params_with_riskiness$household_specific_riskiness))
-  ),
-  riskiness = c(
-    params_with_riskiness$workplace_specific_riskiness,
-    params_with_riskiness$school_specific_riskiness,
-    params_with_riskiness$leisure_specific_riskiness,
-    params_with_riskiness$household_specific_riskiness
-  ),
-  Source = "Direct Riskiness" # Add identifier
-)
+devtools::load_all()
 
-# 2. Prepare the second dataset (ACH Riskiness)
-# Assuming ACH_riskiness_250k has columns 'setting' and 'riskiness'
-# If it is structured like your first list, repeat the data.frame creation above for it.
-ACH_riskiness_250k$Source <- "ACH"
+params <- get_parameters(overrides = list(
+  human_population = 2000,
+  simulation_time = 100,
+  number_initial_S = 1980,
+  number_initial_E = 20,
+  number_initial_I = 0,
+  number_initial_R = 0
+))
 
-# 3. Combine both datasets
-combined_data <- bind_rows(riskiness_data, ACH_riskiness_250k)
+res <- run_simulation(params)
+out <- res$result
 
-# 4. Plot both datasets together
-p2 <- combined_data %>%
-  ggplot(aes(x = riskiness, fill = Source)) + # Fill by Source to compare them
-  geom_histogram(bins = 40, alpha = 0.6, position = "identity") + # 'identity' allows overlap
-  facet_wrap(~setting, scales = "free_y", ncol = 2) +
-  scale_fill_manual(
-    values = c(
-      "Direct Riskiness" = "steelblue",
-      "ACH"              = "firebrick"
-    )
-  ) +
-  labs(
-    title = "Comparison: Direct Riskiness vs. ACH by Setting",
-    x     = "Relative Riskiness",
-    y     = "Count",
-    fill  = "Dataset Source"
-  ) +
-  theme_minimal() +
-  theme(
-    legend.position = "bottom",
-    strip.text = element_text(face = "bold") # Makes facet labels bold
-  )
+cat("Output columns:\n")
+print(names(out))
 
-print(p2)
+cat("\nFinal row:\n")
+print(tail(out, 1))
 
-# 5. Updated Summary statistics comparing both sources
-riskiness_summary <- combined_data %>%
-  group_by(setting, Source) %>%
-  summarise(
-    n_locations = n(),
-    mean_val = mean(riskiness, na.rm = TRUE),
-    median_val = median(riskiness, na.rm = TRUE),
-    sd_val = sd(riskiness, na.rm = TRUE),
-    .groups = "drop"
-  )
+cat("\nState counts at final timestep:\n")
+final <- tail(out, 1)
+state_cols <- c("S_count", "E_count", "I_mild_count", "I_hosp_count",
+                "R_count", "D_count")
+print(final[, state_cols])
 
-print(riskiness_summary)
+cat("\nSum of compartments at final step (should equal human_population =",
+    params$human_population, "):\n")
+print(sum(unlist(final[, state_cols])))
+
+cat("\nCumulative H_new (new hospitalizations) and D_new (new deaths):\n")
+if ("H_new" %in% names(out)) cat("  H_new total:", sum(out$H_new, na.rm = TRUE), "\n")
+if ("D_new" %in% names(out)) cat("  D_new total:", sum(out$D_new, na.rm = TRUE), "\n")
+
+cat("\nQuick plot of trajectories:\n")
+if (requireNamespace("ggplot2", quietly = TRUE)) {
+  library(ggplot2)
+  library(tidyr)
+  long <- tidyr::pivot_longer(out, tidyr::all_of(state_cols),
+                              names_to = "state", values_to = "n")
+  p <- ggplot(long, aes(timestep, n, color = state)) +
+    geom_line() +
+    theme_minimal()
+  print(p)
+}
