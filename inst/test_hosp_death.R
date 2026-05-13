@@ -1,5 +1,4 @@
 ## Quick smoke test for hospitalization & death implementation
-## Run from the helios project root.
 
 devtools::load_all()
 
