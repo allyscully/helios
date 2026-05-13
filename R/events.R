@@ -12,12 +12,21 @@ create_events <- function(variables_list, parameters_list) {
   # Open a list to store the model events and populate using the event generator functions:
   events_list <- list(
     # Event moving exposed individuals to the infectious state
-    EI_event = individual::TargetedEvent$new(
+    EI_mild_event = individual::TargetedEvent$new(
+      population_size = parameters_list$human_population
+    ),
+    EIhosp_event = individual::TargetedEvent$new(
       population_size = parameters_list$human_population
     ),
 
     # Event moving exposed individuals to the infectious state
-    IR_event = individual::TargetedEvent$new(
+    I_mild_R_event = individual::TargetedEvent$new(
+      population_size = parameters_list$human_population
+    ),
+    I_hosp_R_event = individual::TargetedEvent$new(
+      population_size = parameters_list$human_population
+    ),
+    I_hosp_D_event = individual::TargetedEvent$new(
       population_size = parameters_list$human_population
     )
   )

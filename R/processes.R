@@ -29,13 +29,22 @@ create_processes <- function(
     EI_process = create_EI_process(
       variables_list = variables_list,
       events_list = events_list,
-      parameters_list = parameters_list
+      parameters_list = parameters_list,
+      renderer= renderer
     ),
 
-    IR_process = create_IR_process(
+    I_mild_R_process = create_I_mild_R_process(
       variables_list = variables_list,
       events_list = events_list,
-      parameters_list = parameters_list
+      parameters_list = parameters_list,
+      renderer= renderer
+    ),
+
+    I_hosp_exit_process = create_I_hosp_exit_process(
+      variables_list = variables_list,
+      events_list = events_list,
+      parameters_list = parameters_list,
+      renderer= renderer
     )
   )
 
@@ -72,7 +81,7 @@ create_processes <- function(
     renderer = individual::categorical_count_renderer_process(
       renderer,
       variables_list$disease_state,
-      c('S', 'E', 'I', 'R')
+      c('S', 'E', 'I_mild', 'I_hosp', 'R', 'D')
     )
   )
 

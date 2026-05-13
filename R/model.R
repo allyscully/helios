@@ -25,6 +25,8 @@
 #'       disease state.
 #'     \item \code{R_count}: The number of individuals in the Recovered
 #'       (immune) disease state.
+#'     \item \code{D_count}: The number of individuals in the Death
+#'      state.
 #'     \item \code{E_new}: The number of individuals newly transitioning from
 #'       Susceptible to Exposed (i.e. new infections) at each timestep.
 #'   }

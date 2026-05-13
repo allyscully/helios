@@ -112,6 +112,14 @@
 #' * `size_per_individual_leisure`: The volume or surface area for each individual in the leisure setting type; default = 1 (in which case "square_footage" coverage_target gives same results as "individuals" coverage_target)
 #' * `size_per_individual_household`: The volume or surface area for each individual in the household setting type; default = 1 (in which case "square_footage" coverage_target gives same results as "individuals" coverage_target)
 #'
+#' Hospitalizations and Deaths
+#' * `prob_hosp_child`: TBD
+#' * `prob_hosp_adult`: TBD
+#' * `prob_hosp_elderly`: TBD
+#' * `prob_death_hosp_child`: TBD
+#' * `prob_death_hosp_adult`: TBD
+#' * `prob_death_hosp_elderly`: TBD
+#'
 #' @param archetype A text string indicating the pathogen archetype parameter set to load (default = "none", current options are flu, sars_cov_2, and measles)
 #' @family parameters
 #' @export
@@ -230,7 +238,18 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     size_per_individual_workplace = 1,
     size_per_individual_school = 1,
     size_per_individual_leisure = 1,
-    size_per_individual_household = 1
+    size_per_individual_household = 1,
+
+    # Hospitalization & Death Parameters
+
+    prob_inf_external =  TBD,
+    prob_hosp_child = NULL,
+    prob_hosp_adult = NULL,
+    prob_hosp_elderly = NULL,
+    prob_death_hosp_child = NULL,
+    prob_death_hosp_adult = NULL,
+    prob_death_hosp_elderly = NULL
+
   )
 
   # Ensure overridden parameters are passed as a list
