@@ -31,17 +31,38 @@ create_events <- function(variables_list, parameters_list) {
     )
   )
 
-  # Add listener to the EI event:
-  events_list$EI_event$add_listener(
+  # Listener: E -> I_mild
+  events_list$EI_mild_event$add_listener(
     function(t, target) {
-      variables_list$disease_state$queue_update("I", target)
+      variables_list$disease_state$queue_update("I_mild", target)
     }
   )
 
-  # Add listener to the IR event:
-  events_list$IR_event$add_listener(
+  # Listener: E -> I_hosp
+  events_list$EIhosp_event$add_listener(
+    function(t, target) {
+      variables_list$disease_state$queue_update("I_hosp", target)
+    }
+  )
+
+  # Listener: I_mild -> R
+  events_list$I_mild_R_event$add_listener(
     function(t, target) {
       variables_list$disease_state$queue_update("R", target)
+    }
+  )
+
+  # Listener: I_hosp -> R
+  events_list$I_hosp_R_event$add_listener(
+    function(t, target) {
+      variables_list$disease_state$queue_update("R", target)
+    }
+  )
+
+  # Listener: I_hosp -> D
+  events_list$I_hosp_D_event$add_listener(
+    function(t, target) {
+      variables_list$disease_state$queue_update("D", target)
     }
   )
 

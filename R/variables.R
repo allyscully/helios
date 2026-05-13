@@ -302,7 +302,7 @@ generate_initial_disease_states <- function(parameters_list) {
     replace = FALSE,
     prob = NULL
   )
-  initial_disease_states[infectious_index] <- "I"
+  initial_disease_states[infectious_index] <- "I_mild"
 
   # Sample indices between 1:human population (minus those initially exposed) to set those initially infectious:
   recovered_index <- sample(

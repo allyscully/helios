@@ -241,14 +241,12 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     size_per_individual_household = 1,
 
     # Hospitalization & Death Parameters
-
-    prob_inf_external =  TBD,
-    prob_hosp_child = NULL,
-    prob_hosp_adult = NULL,
-    prob_hosp_elderly = NULL,
-    prob_death_hosp_child = NULL,
-    prob_death_hosp_adult = NULL,
-    prob_death_hosp_elderly = NULL
+    prob_hosp_child = 0.001,
+    prob_hosp_adult = 0.03,
+    prob_hosp_elderly = 0.18,
+    prob_death_hosp_child = 0.01,
+    prob_death_hosp_adult = 0.08,
+    prob_death_hosp_elderly = 0.3
 
   )
 
