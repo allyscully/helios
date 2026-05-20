@@ -119,6 +119,8 @@
 #' * `prob_death_hosp_child`: TBD
 #' * `prob_death_hosp_adult`: TBD
 #' * `prob_death_hosp_elderly`: TBD
+#' * `duration_hospitalized`: TBD
+#'
 #'
 #' @param archetype A text string indicating the pathogen archetype parameter set to load (default = "none", current options are flu, sars_cov_2, and measles)
 #' @family parameters
@@ -246,7 +248,8 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     prob_hosp_elderly = 0.18,
     prob_death_hosp_child = 0.01,
     prob_death_hosp_adult = 0.08,
-    prob_death_hosp_elderly = 0.3
+    prob_death_hosp_elderly = 0.3,
+    duration_hospitalized = 10
 
   )
 
@@ -392,6 +395,13 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     parameters$beta_school = 0.207
     parameters$beta_leisure = 0.207
     parameters$beta_community = 0.069
+    prob_hosp_child = 0.001
+    prob_hosp_adult = 0.03
+    prob_hosp_elderly = 0.18
+    prob_death_hosp_child = 0.01
+    prob_death_hosp_adult = 0.08
+    prob_death_hosp_elderly = 0.3
+    duration_hospitalized = 5
   }
 
   # SARS-CoV-2 (R0 ~ 2.5)
@@ -403,6 +413,13 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     parameters$beta_school = 0.24
     parameters$beta_leisure = 0.24
     parameters$beta_community = 0.08
+    prob_hosp_child = 0.001
+    prob_hosp_adult = 0.03
+    prob_hosp_elderly = 0.18
+    prob_death_hosp_child = 0.01
+    prob_death_hosp_adult = 0.08
+    prob_death_hosp_elderly = 0.3
+    duration_hospitalized = 10
   }
 
   # Measles (R0 ~ 9)
@@ -414,6 +431,13 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     parameters$beta_school = 1.26
     parameters$beta_leisure = 1.26
     parameters$beta_community = 0.42
+    prob_hosp_child = 0.001
+    prob_hosp_adult = 0.03
+    prob_hosp_elderly = 0.18
+    prob_death_hosp_child = 0.01
+    prob_death_hosp_adult = 0.08
+    prob_death_hosp_elderly = 0.3
+    duration_hospitalized = 7
   }
 
   # Check that all setting-specific betas are of length 1:

@@ -169,7 +169,7 @@ create_SE_process <- function(
   ## Process Function
   function(t) {
     ## Bitset for all infectious individuals
-    I <- variables_list$disease_state$get_index_of(c("I_mild", "I_hosp"))
+    I <- variables_list$disease_state$get_index_of("I_mild")
 
     #=== Household FOI ===#
     #=====================#
@@ -410,7 +410,7 @@ create_SE_process <- function(
     ### Calculate Community FOI (real-valued for all individuals)
     #### NOTE: Double check whether the "/N" is correct here - not sure currently
     community_FOI <- parameters_list$beta_community *
-      variables_list$disease_state$get_size_of(c("I_mild", "I_hosp")) /
+      variables_list$disease_state$get_size_of("I_mild")/
       parameters_list$human_population
 
     #=== Total FOI ===#
@@ -597,7 +597,7 @@ create_I_hosp_exit_process <- function(
       (rgamma(
         n = length(I_hosp_idx),
         shape = 2,
-        rate = 2 / parameters_list$duration_infectious
+        rate = 2 / parameters_list$duration_hospitalized
       ) + 1) / parameters_list$dt
     )
 
