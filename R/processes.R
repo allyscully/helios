@@ -489,6 +489,16 @@ create_EI_process <- function(
     p_hosp[E_idx %in% adult_idx] <- parameters_list$prob_hosp_adult
     p_hosp[E_idx %in% elderly_idx] <- parameters_list$prob_hosp_elderly
 
+    # Guard: every exposed individual must have been matched to one of the
+    # three age classes. NA in p_hosp would propagate to NA in hosp_draw and
+    # silently drop the individual from both the mild and hosp branches.
+    if (anyNA(p_hosp)) {
+      stop(sprintf(
+        "create_EI_process: p_hosp has %d NA entries — some exposed individuals do not match any age class",
+        sum(is.na(p_hosp))
+      ))
+    }
+
     # Binomial split
     hosp_draw <- rbinom(length(E_idx), size = 1, prob = p_hosp)
 
@@ -588,6 +598,16 @@ create_I_hosp_exit_process <- function(
     p_death[I_hosp_idx %in% child_idx] <- parameters_list$prob_death_hosp_child
     p_death[I_hosp_idx %in% adult_idx] <- parameters_list$prob_death_hosp_adult
     p_death[I_hosp_idx %in% elderly_idx] <- parameters_list$prob_death_hosp_elderly
+
+    # Guard: every hospitalized individual must have been matched to one of
+    # the three age classes. NA in p_death would propagate to NA in death_draw
+    # and silently drop the individual from both the recover and die branches.
+    if (anyNA(p_death)) {
+      stop(sprintf(
+        "create_I_hosp_exit_process: p_death has %d NA entries — some hospitalized individuals do not match any age class",
+        sum(is.na(p_death))
+      ))
+    }
 
     # Binomial split
     death_draw <- rbinom(length(I_hosp_idx), size = 1, prob = p_death)
