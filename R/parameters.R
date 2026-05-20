@@ -113,13 +113,13 @@
 #' * `size_per_individual_household`: The volume or surface area for each individual in the household setting type; default = 1 (in which case "square_footage" coverage_target gives same results as "individuals" coverage_target)
 #'
 #' Hospitalizations and Deaths
-#' * `prob_hosp_child`: TBD
-#' * `prob_hosp_adult`: TBD
-#' * `prob_hosp_elderly`: TBD
-#' * `prob_death_hosp_child`: TBD
-#' * `prob_death_hosp_adult`: TBD
-#' * `prob_death_hosp_elderly`: TBD
-#' * `duration_hospitalized`: TBD
+#' * `prob_hosp_child`: Probability that an infected child is hospitalized
+#' * `prob_hosp_adult`: Probability that an infected adult is hospitalized
+#' * `prob_hosp_elderly`: Probability that an infected elderly individual is hospitalized
+#' * `prob_death_hosp_child`: Probability of death for a hospitalized child, conditional on hospitalization
+#' * `prob_death_hosp_adult`: Probability of death for a hospitalized adult, conditional on hospitalization
+#' * `prob_death_hosp_elderly`: Probability of death for a hospitalized elderly individual, conditional on hospitalization
+#' * `duration_hospitalized`: Average duration (in days) of a hospitalization
 #'
 #'
 #' @param archetype A text string indicating the pathogen archetype parameter set to load (default = "none", current options are flu, sars_cov_2, and measles)
