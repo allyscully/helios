@@ -112,6 +112,16 @@
 #' * `size_per_individual_leisure`: The volume or surface area for each individual in the leisure setting type; default = 1 (in which case "square_footage" coverage_target gives same results as "individuals" coverage_target)
 #' * `size_per_individual_household`: The volume or surface area for each individual in the household setting type; default = 1 (in which case "square_footage" coverage_target gives same results as "individuals" coverage_target)
 #'
+#' Hospitalizations and Deaths
+#' * `prob_hosp_child`: Probability that an infected child is hospitalized
+#' * `prob_hosp_adult`: Probability that an infected adult is hospitalized
+#' * `prob_hosp_elderly`: Probability that an infected elderly individual is hospitalized
+#' * `prob_death_hosp_child`: Probability of death for a hospitalized child, conditional on hospitalization
+#' * `prob_death_hosp_adult`: Probability of death for a hospitalized adult, conditional on hospitalization
+#' * `prob_death_hosp_elderly`: Probability of death for a hospitalized elderly individual, conditional on hospitalization
+#' * `duration_hospitalized`: Average duration (in days) of a hospitalization
+#'
+#'
 #' @param archetype A text string indicating the pathogen archetype parameter set to load (default = "none", current options are flu, sars_cov_2, and measles)
 #' @family parameters
 #' @export
@@ -230,7 +240,17 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     size_per_individual_workplace = 1,
     size_per_individual_school = 1,
     size_per_individual_leisure = 1,
-    size_per_individual_household = 1
+    size_per_individual_household = 1,
+
+    # Hospitalization & Death Parameters
+    prob_hosp_child = 0.001,
+    prob_hosp_adult = 0.03,
+    prob_hosp_elderly = 0.18,
+    prob_death_hosp_child = 0.01,
+    prob_death_hosp_adult = 0.08,
+    prob_death_hosp_elderly = 0.3,
+    duration_hospitalized = 10
+
   )
 
   # Ensure overridden parameters are passed as a list
@@ -375,6 +395,13 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     parameters$beta_school = 0.207
     parameters$beta_leisure = 0.207
     parameters$beta_community = 0.069
+    prob_hosp_child = 0.001
+    prob_hosp_adult = 0.03
+    prob_hosp_elderly = 0.18
+    prob_death_hosp_child = 0.01
+    prob_death_hosp_adult = 0.08
+    prob_death_hosp_elderly = 0.3
+    duration_hospitalized = 5
   }
 
   # SARS-CoV-2 (R0 ~ 2.5)
@@ -386,6 +413,13 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     parameters$beta_school = 0.24
     parameters$beta_leisure = 0.24
     parameters$beta_community = 0.08
+    prob_hosp_child = 0.001
+    prob_hosp_adult = 0.03
+    prob_hosp_elderly = 0.18
+    prob_death_hosp_child = 0.01
+    prob_death_hosp_adult = 0.08
+    prob_death_hosp_elderly = 0.3
+    duration_hospitalized = 10
   }
 
   # Measles (R0 ~ 9)
@@ -397,6 +431,13 @@ get_parameters <- function(overrides = list(), archetype = "none") {
     parameters$beta_school = 1.26
     parameters$beta_leisure = 1.26
     parameters$beta_community = 0.42
+    prob_hosp_child = 0.001
+    prob_hosp_adult = 0.03
+    prob_hosp_elderly = 0.18
+    prob_death_hosp_child = 0.01
+    prob_death_hosp_adult = 0.08
+    prob_death_hosp_elderly = 0.3
+    duration_hospitalized = 7
   }
 
   # Check that all setting-specific betas are of length 1:

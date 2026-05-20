@@ -23,8 +23,14 @@
 #'       but not yet infectious) disease state.
 #'     \item \code{I_count}: The number of individuals in the Infectious
 #'       disease state.
+#'     \item \code{I_mild_count}: The number of individuals in the mild Infectious
+#'       disease state.
+#'     \item \code{I_hosp_count}: The number of individuals in the severe Infectious
+#'       disease state that require hospitalization.
 #'     \item \code{R_count}: The number of individuals in the Recovered
 #'       (immune) disease state.
+#'     \item \code{D_count}: The number of individuals in the Death
+#'      state.
 #'     \item \code{E_new}: The number of individuals newly transitioning from
 #'       Susceptible to Exposed (i.e. new infections) at each timestep.
 #'   }
